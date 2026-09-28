@@ -173,7 +173,7 @@ export const TextStylometryPage: React.FC<TextStylometryPageProps> = ({
       {/* ── Page header ────────────────────────────────────────────────── */}
       <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'flex-start', justifyContent: 'space-between', gap: '16px', marginBottom: '28px' }}>
         <div>
-          <h1 style={{ fontSize: '24px', fontWeight: 800, color: 'var(--text-main)', marginBottom: '6px' }}>Text Stylometry</h1>
+          <h1 style={{ fontSize: '24px', fontWeight: 800, color: 'var(--text-main)', marginBottom: '6px' }}>Text & Message Authenticity</h1>
           <p style={{ color: 'var(--text-muted)', fontSize: '14px' }}>Analyze linguistic patterns and stylistic indicators.</p>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
@@ -237,7 +237,7 @@ export const TextStylometryPage: React.FC<TextStylometryPageProps> = ({
                 <textarea
                   value={textInput}
                   onChange={(e) => setTextInput(e.target.value)}
-                  placeholder="Paste suspect text or drag & drop text/doc files here to assess linguistic patterns..."
+                  placeholder="Paste your text or message here..."
                   style={{
                     width: '100%', height: '350px', background: 'transparent', border: 'none', resize: 'none',
                     padding: '16px', color: 'var(--text-main)', fontSize: '14px', lineHeight: 1.6,
@@ -261,7 +261,7 @@ export const TextStylometryPage: React.FC<TextStylometryPageProps> = ({
                   disabled={!textInput.trim() || isScanning}
                   style={{ display: 'flex', alignItems: 'center', gap: '6px', background: 'var(--cyan-primary)', border: 'none', color: 'var(--text-invert)', padding: '8px 16px', borderRadius: '6px', fontSize: '13px', fontWeight: 600, cursor: !textInput.trim() || isScanning ? 'not-allowed' : 'pointer', opacity: !textInput.trim() || isScanning ? 0.5 : 1 }}
                 >
-                  <Play size={14} style={{ fill: 'currentColor' }} /> Analyze
+                  <Play size={14} style={{ fill: 'currentColor' }} /> Analyze Text
                 </button>
               </div>
             </div>
