@@ -22,10 +22,10 @@ interface ForensicReportsPageProps {
 }
 
 export const ForensicReportsPage: React.FC<ForensicReportsPageProps> = ({
-  selectedCaseId = 'RC-2026-0042',
+  selectedCaseId,
   onNavigate
 }) => {
-  const [activeId, setActiveId] = useState<string>(selectedCaseId);
+  const [activeId, setActiveId] = useState<string>(selectedCaseId || '');
   const [currentCase, setCurrentCase] = React.useState<InvestigationResult | null>(null);
   const [allCases, setAllCases] = React.useState<InvestigationResult[]>([]);
   const [isLoading, setIsLoading] = React.useState(true);
@@ -245,29 +245,29 @@ export const ForensicReportsPage: React.FC<ForensicReportsPageProps> = ({
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px' }}>
             <div style={{ background: 'rgba(15, 23, 42, 0.6)', padding: '12px', borderRadius: '6px' }}>
               <div style={{ fontSize: '10px', color: '#94a3b8', textTransform: 'uppercase' }}>AI Generation Prob</div>
-              <div style={{ fontSize: '18px', fontWeight: 700, fontFamily: 'var(--font-mono)', color: currentCase?.ai_generation_probability > 70 ? '#f87171' : '#34d399' }}>
-                {currentCase?.ai_generation_probability.toFixed(1)}%
+              <div style={{ fontSize: '18px', fontWeight: 700, fontFamily: 'var(--font-mono)', color: (currentCase?.ai_generation_probability || 0) > 70 ? '#f87171' : '#34d399' }}>
+                {(currentCase?.ai_generation_probability || 0).toFixed(1)}%
               </div>
             </div>
 
             <div style={{ background: 'rgba(15, 23, 42, 0.6)', padding: '12px', borderRadius: '6px' }}>
               <div style={{ fontSize: '10px', color: '#94a3b8', textTransform: 'uppercase' }}>Manipulation Risk</div>
-              <div style={{ fontSize: '18px', fontWeight: 700, fontFamily: 'var(--font-mono)', color: currentCase?.manipulation_risk > 50 ? '#fbbf24' : '#34d399' }}>
-                {currentCase?.manipulation_risk.toFixed(1)}%
+              <div style={{ fontSize: '18px', fontWeight: 700, fontFamily: 'var(--font-mono)', color: (currentCase?.manipulation_risk || 0) > 50 ? '#fbbf24' : '#34d399' }}>
+                {(currentCase?.manipulation_risk || 0).toFixed(1)}%
               </div>
             </div>
 
             <div style={{ background: 'rgba(15, 23, 42, 0.6)', padding: '12px', borderRadius: '6px' }}>
               <div style={{ fontSize: '10px', color: '#94a3b8', textTransform: 'uppercase' }}>Forensic Anomaly</div>
               <div style={{ fontSize: '18px', fontWeight: 700, fontFamily: 'var(--font-mono)', color: '#f8fafc' }}>
-                {currentCase?.forensic_anomaly_score.toFixed(1)}%
+                {(currentCase?.forensic_anomaly_score || 0).toFixed(1)}%
               </div>
             </div>
 
             <div style={{ background: 'rgba(15, 23, 42, 0.6)', padding: '12px', borderRadius: '6px' }}>
               <div style={{ fontSize: '10px', color: '#94a3b8', textTransform: 'uppercase' }}>Metadata Risk</div>
               <div style={{ fontSize: '18px', fontWeight: 700, fontFamily: 'var(--font-mono)', color: '#94a3b8' }}>
-                {currentCase?.metadata_risk_score.toFixed(1)}%
+                {(currentCase?.metadata_risk_score || 0).toFixed(1)}%
               </div>
             </div>
           </div>
@@ -308,6 +308,56 @@ export const ForensicReportsPage: React.FC<ForensicReportsPageProps> = ({
           </table>
         </div>
 
+        {currentCase?.media_type === 'TEXT' && currentCase?.text_metrics && (
+          <div style={{ marginBottom: '28px' }}>
+            <div style={{ fontSize: '12px', fontWeight: 700, color: '#38bdf8', letterSpacing: '0.8px', textTransform: 'uppercase', marginBottom: '10px' }}>
+              Text Details
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '12px' }}>
+              {currentCase.text_metrics.word_count !== undefined && (
+                <div style={{ background: 'rgba(15, 23, 42, 0.6)', padding: '12px', borderRadius: '6px' }}>
+                  <div style={{ fontSize: '10px', color: '#94a3b8', textTransform: 'uppercase' }}>Word Count</div>
+                  <div style={{ fontSize: '18px', fontWeight: 700, fontFamily: 'var(--font-mono)', color: '#f8fafc' }}>
+                    {currentCase.text_metrics.word_count}
+                  </div>
+                </div>
+              )}
+              {currentCase.text_metrics.sentence_count !== undefined && (
+                <div style={{ background: 'rgba(15, 23, 42, 0.6)', padding: '12px', borderRadius: '6px' }}>
+                  <div style={{ fontSize: '10px', color: '#94a3b8', textTransform: 'uppercase' }}>Sentence Count</div>
+                  <div style={{ fontSize: '18px', fontWeight: 700, fontFamily: 'var(--font-mono)', color: '#f8fafc' }}>
+                    {currentCase.text_metrics.sentence_count}
+                  </div>
+                </div>
+              )}
+              {currentCase.text_metrics.burstiness_score !== undefined && (
+                <div style={{ background: 'rgba(15, 23, 42, 0.6)', padding: '12px', borderRadius: '6px' }}>
+                  <div style={{ fontSize: '10px', color: '#94a3b8', textTransform: 'uppercase' }}>Burstiness</div>
+                  <div style={{ fontSize: '18px', fontWeight: 700, fontFamily: 'var(--font-mono)', color: '#f8fafc' }}>
+                    {currentCase.text_metrics.burstiness_score.toFixed(2)}
+                  </div>
+                </div>
+              )}
+              {currentCase.text_metrics.vocabulary_richness_ttr !== undefined && (
+                <div style={{ background: 'rgba(15, 23, 42, 0.6)', padding: '12px', borderRadius: '6px' }}>
+                  <div style={{ fontSize: '10px', color: '#94a3b8', textTransform: 'uppercase' }}>Vocabulary Richness</div>
+                  <div style={{ fontSize: '18px', fontWeight: 700, fontFamily: 'var(--font-mono)', color: '#f8fafc' }}>
+                    {currentCase.text_metrics.vocabulary_richness_ttr.toFixed(2)}
+                  </div>
+                </div>
+              )}
+              {currentCase.text_metrics.perplexity_score !== undefined && (
+                <div style={{ background: 'rgba(15, 23, 42, 0.6)', padding: '12px', borderRadius: '6px' }}>
+                  <div style={{ fontSize: '10px', color: '#94a3b8', textTransform: 'uppercase' }}>Perplexity</div>
+                  <div style={{ fontSize: '18px', fontWeight: 700, fontFamily: 'var(--font-mono)', color: '#f8fafc' }}>
+                    {currentCase.text_metrics.perplexity_score}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
         {/* Executive Interpretation */}
         <div style={{ marginBottom: '28px' }}>
           <div style={{ fontSize: '12px', fontWeight: 700, color: '#38bdf8', letterSpacing: '0.8px', textTransform: 'uppercase', marginBottom: '8px' }}>
@@ -321,7 +371,8 @@ export const ForensicReportsPage: React.FC<ForensicReportsPageProps> = ({
               borderRadius: '0 6px 6px 0',
               fontSize: '13px',
               color: '#cbd5e1',
-              lineHeight: 1.6
+              lineHeight: 1.6,
+              whiteSpace: 'pre-wrap'
             }}
           >
             {currentCase?.why_result_explanation}

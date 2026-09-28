@@ -15,6 +15,8 @@ from ...schemas.forensics import (
 )
 
 class TextDetector(BaseDetector):
+    _case_counter = 0
+
     def __init__(self):
         super().__init__(
             model_name="Text Authenticity & Manipulation Analyzer",
@@ -23,7 +25,8 @@ class TextDetector(BaseDetector):
         )
 
     def analyze(self, file_path_or_content: Any, metadata: Optional[Dict[str, Any]] = None) -> InvestigationResult:
-        case_id = f"RC-2026-{int(time.time() % 10000):04d}"
+        TextDetector._case_counter += 1
+        case_id = f"RC-{TextDetector._case_counter:03d}"
         file_name = (metadata or {}).get("file_name", "analyzed_document.txt")
         
         text_content = str(file_path_or_content) if file_path_or_content else ""
@@ -41,9 +44,16 @@ class TextDetector(BaseDetector):
                 file_size=file_size,
                 content_hash=content_hash,
                 assessment="Uncertain",
-                confidence=0.0,
-                why_explanation="Text cannot be empty.",
-                signals=[],
+                confidence=0.4,
+                why_explanation="Classification: Uncertain\n\nConfidence: 40%\n\nReason:\nText is too short for reliable analysis.",
+                signals=[self._create_signal(
+                    "Insufficient Text Length",
+                    "stylometric",
+                    0.0,
+                    0.0,
+                    "Inconclusive",
+                    "Inconclusive"
+                )],
                 evidence=[],
                 metrics={}
             )
@@ -68,9 +78,16 @@ class TextDetector(BaseDetector):
                 file_size=file_size,
                 content_hash=content_hash,
                 assessment="Uncertain",
-                confidence=0.1,
-                why_explanation="Insufficient text for reliable analysis.",
-                signals=[],
+                confidence=0.4,
+                why_explanation="Classification: Uncertain\n\nConfidence: 40%\n\nReason:\nText is too short for reliable analysis.",
+                signals=[self._create_signal(
+                    "Insufficient Text Length",
+                    "stylometric",
+                    0.0,
+                    0.0,
+                    "Inconclusive",
+                    "Inconclusive"
+                )],
                 evidence=[],
                 metrics={"characters": characters, "word_count": word_count, "sentence_count": sentence_count}
             )
@@ -120,27 +137,48 @@ class TextDetector(BaseDetector):
              signals.append(self._create_signal("Unusual formatting (excessive uppercase).", "stylometric", 40, 0.2, "Moderate", "Anomaly Detected"))
 
         # AI-Generated Indicators
-        # Low sentence variation
+        # 1. Low sentence variation (Burstiness)
         if sentence_count >= 5:
-            if burstiness < 0.35:
-                ai_score += 40
-                signals.append(self._create_signal("Low variation in sentence length", "stylometric", 75, 0.4, "Strong", "Suspicious Pattern"))
-            else:
-                signals.append(self._create_signal("Natural sentence variation", "stylometric", 15, 0.2, "Normal", "Within Normal Variance"))
-
-        # Low vocabulary diversity
-        if word_count > 30:
-            if lexical_diversity < 0.45:
+            if burstiness < 0.25:
+                ai_score += 45
+                signals.append(self._create_signal("Extremely low variation in sentence length", "stylometric", 85, 0.45, "Strong", "Suspicious Pattern"))
+            elif burstiness < 0.35:
                 ai_score += 30
-                signals.append(self._create_signal("Moderate vocabulary diversity (constrained)", "lexical", 65, 0.3, "Moderate", "Suspicious Pattern"))
-            else:
+                signals.append(self._create_signal("Low variation in sentence length", "stylometric", 70, 0.3, "Moderate", "Suspicious Pattern"))
+            elif burstiness > 0.6:
+                signals.append(self._create_signal("High sentence length variation (Human-like)", "stylometric", 15, 0.2, "Normal", "Within Normal Variance"))
+                ai_score = max(0, ai_score - 15)
+
+        # 2. Lexical diversity (scaled by length)
+        expected_ttr = 0.8 if word_count < 50 else (0.7 if word_count < 100 else 0.5)
+        if word_count > 30:
+            if lexical_diversity < expected_ttr * 0.7:
+                ai_score += 35
+                signals.append(self._create_signal("Unusually constrained vocabulary", "lexical", 75, 0.35, "Strong", "Suspicious Pattern"))
+            elif lexical_diversity > expected_ttr * 1.2:
                 signals.append(self._create_signal("Rich vocabulary diversity", "lexical", 15, 0.2, "Normal", "Within Normal Variance"))
-                
-        transition_phrases = ["furthermore", "moreover", "in conclusion", "additionally", "firstly", "secondly", "crucial", "multifaceted", "testament"]
-        found_transitions = sum(1 for p in transition_phrases if p in text_content.lower())
-        if found_transitions >= 2 or (found_transitions > 0 and word_count < 30):
+                ai_score = max(0, ai_score - 10)
+
+        # 3. AI-typical vocabulary and transitions
+        ai_vocabulary = [
+            "delve", "tapestry", "multifaceted", "testament", "intricate", 
+            "crucial", "landscape", "moreover", "furthermore", "additionally", 
+            "in conclusion", "it is important to note", "firstly", "secondly"
+        ]
+        found_ai_words = sum(1 for p in ai_vocabulary if p in text_content.lower())
+        if found_ai_words >= 3:
             ai_score += 40
-            signals.append(self._create_signal("Repeated transitional phrases / Formal and predictable writing pattern", "stylometric", 60, 0.3, "Moderate", "Suspicious Pattern"))
+            signals.append(self._create_signal("High density of AI-typical phrasing", "stylometric", 80, 0.4, "Strong", "Suspicious Pattern"))
+        elif found_ai_words >= 1 and word_count < 50:
+            ai_score += 25
+            signals.append(self._create_signal("Predictable transition phrasing", "stylometric", 55, 0.25, "Moderate", "Suspicious Pattern"))
+
+        # 4. Human indicators (Contractions, informalities)
+        contractions = ["can't", "won't", "doesn't", "didn't", "i'm", "you're", "they're", "it's"]
+        found_contractions = sum(1 for p in contractions if p in text_content.lower())
+        if found_contractions >= 2:
+            signals.append(self._create_signal("Informal contractions present", "stylometric", 10, 0.1, "Normal", "Within Normal Variance"))
+            ai_score = max(0, ai_score - 20)
 
         # Classification Logic
         assessment = "Uncertain"
@@ -151,13 +189,13 @@ class TextDetector(BaseDetector):
             confidence = min(0.95, 0.4 + (manipulation_score / 100))
         elif ai_score >= 60 and manipulation_score >= 20:
             assessment = "AI-Edited"
-            confidence = 0.75
-        elif ai_score >= 40:
+            confidence = min(0.9, 0.5 + ((ai_score + manipulation_score) / 200))
+        elif ai_score >= 45:
             assessment = "AI-Generated"
-            confidence = min(0.92, 0.5 + (ai_score / 200))
-        elif ai_score < 40 and manipulation_score < 20 and word_count >= 20:
+            confidence = min(0.98, 0.5 + (ai_score / 150))
+        elif ai_score <= 30 and manipulation_score < 20 and word_count >= 20:
             assessment = "Human-Written"
-            confidence = min(0.9, 0.6 + (burstiness))
+            confidence = min(0.95, 0.6 + burstiness)
         else:
             assessment = "Uncertain"
             confidence = 0.4
@@ -165,13 +203,21 @@ class TextDetector(BaseDetector):
         if word_count < 20:
             confidence = min(confidence, 0.4)
 
+        # Proxy perplexity heuristic
+        perplexity_proxy = 0.0
+        if word_count > 10:
+            perplexity_proxy = 20 + (lexical_diversity * 100) + (burstiness * 20)
+            if found_ai_words > 0:
+                perplexity_proxy -= (found_ai_words * 5)
+            perplexity_proxy = max(5.0, min(150.0, perplexity_proxy))
+
         metrics = {
             "characters": characters,
             "word_count": word_count,
             "sentence_count": sentence_count,
             "burstiness_score": burstiness,
             "vocabulary_richness_ttr": lexical_diversity,
-            "perplexity_score": 0.0,
+            "perplexity_score": round(perplexity_proxy, 1),
             "sentence_length_std_dev": burstiness * (sum(sentence_lengths) / sentence_count) if sentence_count > 0 else 0
         }
 
@@ -190,31 +236,47 @@ class TextDetector(BaseDetector):
         # Build detailed explanation
         explanation_lines = []
         explanation_lines.append(f"Classification: {assessment}")
+        explanation_lines.append("")
         explanation_lines.append(f"Confidence: {int(confidence * 100)}%")
         explanation_lines.append("")
         
-        explanation_lines.append("Indicators:")
-        if signals:
-            for sig in signals:
-                explanation_lines.append(f"- {sig.name}")
-        else:
-            explanation_lines.append("- No significant anomalies detected")
-            
-        explanation_lines.append("")
-        explanation_lines.append("Explanation:")
+        explanation_lines.append("Reason:")
         
         if assessment == "AI-Generated":
-            explanation_lines.append("The text contains several linguistic patterns associated with AI-generated writing. The result is an estimation and should not be treated as definitive proof.")
+            explanation_lines.append("The text contains several linguistic patterns associated with AI-generated writing.")
         elif assessment == "AI-Edited":
-            explanation_lines.append("The text shows signs of both human and AI characteristics, suggesting it may have been edited or heavily modified by AI tools. The result is an estimation.")
+            explanation_lines.append("The text shows signs of both human and AI characteristics, suggesting it may have been edited or heavily modified by AI tools.")
         elif assessment == "Manipulated":
-            explanation_lines.append("The text contains highly suspicious patterns, such as repeated sentences or phrases, formatting anomalies, or unusual character sets. This suggests potential manipulation.")
+            explanation_lines.append("The text contains highly suspicious patterns, such as repeated sentences or phrases, formatting anomalies, or unusual character sets.")
         elif assessment == "Human-Written":
-            explanation_lines.append("The linguistic patterns, such as natural sentence variance and vocabulary richness, are consistent with human writing. The result is an estimation.")
+            explanation_lines.append("The linguistic patterns, such as natural sentence variance and vocabulary richness, are consistent with human writing.")
         else:
-            explanation_lines.append("The analysis is uncertain due to insufficient or conflicting indicators, or the text may be too short to reliably analyze.")
+            if word_count < 20:
+                explanation_lines.append("Text is too short for reliable analysis.")
+            else:
+                explanation_lines.append("The analysis is uncertain due to insufficient or conflicting indicators.")
             
         why = "\n".join(explanation_lines)
+
+        if not signals:
+            if word_count < 20:
+                signals.append(self._create_signal(
+                    "Insufficient Text Length", 
+                    "stylometric", 
+                    0.0, 
+                    0.0, 
+                    "Inconclusive", 
+                    "Inconclusive"
+                ))
+            else:
+                signals.append(self._create_signal(
+                    "No Significant Anomalies Detected", 
+                    "stylometric", 
+                    0.0, 
+                    0.0, 
+                    "Normal", 
+                    "Within Normal Variance"
+                ))
 
         return self._build_result(
             case_id=case_id,

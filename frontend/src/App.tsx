@@ -49,7 +49,12 @@ function AppLayout() {
   }, [location.pathname]);
 
   const handleNavigate = (tab: string, caseId?: string) => {
-    navigate(`/${tab}${caseId ? `/${caseId}` : `/${activeCaseId}`}`);
+    const staticTabs = ['settings', 'about', 'models', 'new-investigation'];
+    if (staticTabs.includes(tab)) {
+      navigate(`/${tab}`);
+    } else {
+      navigate(`/${tab}${caseId ? `/${caseId}` : `/${activeCaseId}`}`);
+    }
   };
 
   const handleSelectCase = (caseId: string) => {
