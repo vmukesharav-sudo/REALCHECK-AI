@@ -121,7 +121,7 @@ class TextDetector(BaseDetector):
 
         # AI-Generated Indicators
         # Low sentence variation
-        if sentence_count >= 3:
+        if sentence_count >= 5:
             if burstiness < 0.35:
                 ai_score += 40
                 signals.append(self._create_signal("Low variation in sentence length", "stylometric", 75, 0.4, "Strong", "Suspicious Pattern"))
@@ -187,7 +187,34 @@ class TextDetector(BaseDetector):
                     category=sig.category
                 ))
 
-        why = f"Text analysis completed successfully. Classified as {assessment} with {int(confidence*100)}% confidence."
+        # Build detailed explanation
+        explanation_lines = []
+        explanation_lines.append(f"Classification: {assessment}")
+        explanation_lines.append(f"Confidence: {int(confidence * 100)}%")
+        explanation_lines.append("")
+        
+        explanation_lines.append("Indicators:")
+        if signals:
+            for sig in signals:
+                explanation_lines.append(f"- {sig.name}")
+        else:
+            explanation_lines.append("- No significant anomalies detected")
+            
+        explanation_lines.append("")
+        explanation_lines.append("Explanation:")
+        
+        if assessment == "AI-Generated":
+            explanation_lines.append("The text contains several linguistic patterns associated with AI-generated writing. The result is an estimation and should not be treated as definitive proof.")
+        elif assessment == "AI-Edited":
+            explanation_lines.append("The text shows signs of both human and AI characteristics, suggesting it may have been edited or heavily modified by AI tools. The result is an estimation.")
+        elif assessment == "Manipulated":
+            explanation_lines.append("The text contains highly suspicious patterns, such as repeated sentences or phrases, formatting anomalies, or unusual character sets. This suggests potential manipulation.")
+        elif assessment == "Human-Written":
+            explanation_lines.append("The linguistic patterns, such as natural sentence variance and vocabulary richness, are consistent with human writing. The result is an estimation.")
+        else:
+            explanation_lines.append("The analysis is uncertain due to insufficient or conflicting indicators, or the text may be too short to reliably analyze.")
+            
+        why = "\n".join(explanation_lines)
 
         return self._build_result(
             case_id=case_id,
