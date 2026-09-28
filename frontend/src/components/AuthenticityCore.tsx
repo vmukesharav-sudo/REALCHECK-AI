@@ -15,9 +15,9 @@ export const AuthenticityCore: React.FC<AuthenticityCoreProps> = ({
   const [hoveredNode, setHoveredNode] = useState<string | null>(null);
 
   const engines = [
-    { id: 'image', label: 'IMAGE FORENSICS', icon: Image, angle: 45, color: '#00f0ff', desc: 'Fourier FFT & PRNU Noise' },
-    { id: 'video', label: 'VIDEO ANALYSIS', icon: Video, angle: 135, color: '#38bdf8', desc: 'Spatial-Temporal Face Flow' },
-    { id: 'audio', label: 'AUDIO AUTHENTICITY', icon: Mic, angle: 225, color: '#06b6d4', desc: 'Harmonic Formant & Vocoder' },
+    { id: 'image', label: 'IMAGE FORENSICS', icon: Image, angle: 45, color: 'var(--cyan-primary)', desc: 'Fourier FFT & PRNU Noise' },
+    { id: 'video', label: 'VIDEO ANALYSIS', icon: Video, angle: 135, color: 'var(--blue-soft)', desc: 'Spatial-Temporal Face Flow' },
+    { id: 'audio', label: 'AUDIO AUTHENTICITY', icon: Mic, angle: 225, color: 'var(--cyan-muted)', desc: 'Harmonic Formant & Vocoder' },
     { id: 'text', label: 'TEXT STYLOMETRY', icon: FileText, angle: 315, color: '#60a5fa', desc: 'Burstiness & Perplexity' },
   ];
 
@@ -94,13 +94,13 @@ export const AuthenticityCore: React.FC<AuthenticityCoreProps> = ({
         }}
       >
         <Zap size={22} color="#00f0ff" />
-        <span style={{ fontSize: '10px', textTransform: 'uppercase', letterSpacing: '1.2px', color: '#94a3b8', marginTop: '4px' }}>
+        <span style={{ fontSize: '10px', textTransform: 'uppercase', letterSpacing: '1.2px', color: 'var(--text-muted)', marginTop: '4px' }}>
           EVIDENCE CORE
         </span>
-        <div style={{ fontSize: '26px', fontWeight: 800, fontFamily: 'var(--font-mono)', color: '#f8fafc' }}>
+        <div style={{ fontSize: '26px', fontWeight: 800, fontFamily: 'var(--font-mono)', color: 'var(--text-main)' }}>
           {activeScore}%
         </div>
-        <span style={{ fontSize: '9px', color: '#38bdf8', letterSpacing: '0.4px', fontWeight: 600 }}>
+        <span style={{ fontSize: '9px', color: 'var(--blue-soft)', letterSpacing: '0.4px', fontWeight: 600 }}>
           AUTHENTICITY
         </span>
       </div>
@@ -131,8 +131,8 @@ export const AuthenticityCore: React.FC<AuthenticityCoreProps> = ({
             <Image size={16} color="#00f0ff" />
           </div>
           <div>
-            <div style={{ fontSize: '12px', fontWeight: 700, letterSpacing: '0.8px', color: '#f8fafc' }}>IMAGE ENGINE</div>
-            <div style={{ fontSize: '10px', color: '#94a3b8' }}>Fourier FFT &bull; PRNU Noise</div>
+            <div style={{ fontSize: '12px', fontWeight: 700, letterSpacing: '0.8px', color: 'var(--text-main)' }}>IMAGE ENGINE</div>
+            <div style={{ fontSize: '10px', color: 'var(--text-muted)' }}>Fourier FFT &bull; PRNU Noise</div>
           </div>
         </div>
       </div>
@@ -158,12 +158,12 @@ export const AuthenticityCore: React.FC<AuthenticityCoreProps> = ({
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <div style={{ width: '28px', height: '28px', borderRadius: '6px', background: 'rgba(56, 189, 248, 0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{ width: '28px', height: '28px', borderRadius: '6px', background: 'var(--border-subtle)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <Video size={16} color="#38bdf8" />
           </div>
           <div>
-            <div style={{ fontSize: '12px', fontWeight: 700, letterSpacing: '0.8px', color: '#f8fafc' }}>VIDEO ANALYSIS</div>
-            <div style={{ fontSize: '10px', color: '#94a3b8' }}>Lip-Sync &bull; Landmark Warping</div>
+            <div style={{ fontSize: '12px', fontWeight: 700, letterSpacing: '0.8px', color: 'var(--text-main)' }}>VIDEO ANALYSIS</div>
+            <div style={{ fontSize: '10px', color: 'var(--text-muted)' }}>Lip-Sync &bull; Landmark Warping</div>
           </div>
         </div>
       </div>
@@ -193,8 +193,8 @@ export const AuthenticityCore: React.FC<AuthenticityCoreProps> = ({
             <Mic size={16} color="#06b6d4" />
           </div>
           <div>
-            <div style={{ fontSize: '12px', fontWeight: 700, letterSpacing: '0.8px', color: '#f8fafc' }}>AUDIO AUTHENTICITY</div>
-            <div style={{ fontSize: '10px', color: '#94a3b8' }}>Mel Spectrogram &bull; Jitter</div>
+            <div style={{ fontSize: '12px', fontWeight: 700, letterSpacing: '0.8px', color: 'var(--text-main)' }}>AUDIO AUTHENTICITY</div>
+            <div style={{ fontSize: '10px', color: 'var(--text-muted)' }}>Mel Spectrogram &bull; Jitter</div>
           </div>
         </div>
       </div>
@@ -224,8 +224,8 @@ export const AuthenticityCore: React.FC<AuthenticityCoreProps> = ({
             <FileText size={16} color="#60a5fa" />
           </div>
           <div>
-            <div style={{ fontSize: '12px', fontWeight: 700, letterSpacing: '0.8px', color: '#f8fafc' }}>TEXT STYLOMETRY</div>
-            <div style={{ fontSize: '10px', color: '#94a3b8' }}>Burstiness &bull; Perplexity</div>
+            <div style={{ fontSize: '12px', fontWeight: 700, letterSpacing: '0.8px', color: 'var(--text-main)' }}>TEXT STYLOMETRY</div>
+            <div style={{ fontSize: '10px', color: 'var(--text-muted)' }}>Burstiness &bull; Perplexity</div>
           </div>
         </div>
       </div>

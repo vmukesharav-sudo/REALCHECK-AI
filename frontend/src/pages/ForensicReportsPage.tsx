@@ -1,3 +1,4 @@
+import { Loader2 } from 'lucide-react';
 import React, { useState } from 'react';
 import { 
   FileSpreadsheet, 
@@ -11,7 +12,7 @@ import {
   Share2,
   CheckCircle2
 } from 'lucide-react';
-import { SAMPLE_CASES } from '../data/sampleCases';
+
 import { forensicApi } from '../services/api';
 import { InvestigationResult } from '../types/forensics';
 
@@ -25,25 +26,62 @@ export const ForensicReportsPage: React.FC<ForensicReportsPageProps> = ({
   onNavigate
 }) => {
   const [activeId, setActiveId] = useState<string>(selectedCaseId);
-  const currentCase: InvestigationResult = SAMPLE_CASES[activeId] || SAMPLE_CASES['RC-2026-0042'];
+  const [currentCase, setCurrentCase] = React.useState<InvestigationResult | null>(null);
+  const [allCases, setAllCases] = React.useState<InvestigationResult[]>([]);
+  const [isLoading, setIsLoading] = React.useState(true);
 
-  const allCases = Object.values(SAMPLE_CASES);
+  React.useEffect(() => {
+    let isMounted = true;
+    setIsLoading(true);
+    
+    if (activeId) {
+      Promise.all([
+        forensicApi.getInvestigation(activeId),
+        forensicApi.getInvestigations()
+      ]).then(([caseData, allData]) => {
+        if (isMounted) {
+          setCurrentCase(caseData);
+          setAllCases(allData);
+          setIsLoading(false);
+        }
+      }).catch(err => {
+        console.error(err);
+        if (isMounted) setIsLoading(false);
+      });
+    } else {
+        forensicApi.getInvestigations().then(allData => {
+            if (isMounted) {
+                setAllCases(allData);
+                if (allData.length > 0) {
+                    setActiveId(allData[0].case_id);
+                } else {
+                    setIsLoading(false);
+                }
+            }
+        });
+    }
+    return () => { isMounted = false; };
+  }, [activeId]);
+
+  if (!currentCase) return null;
 
   const handlePrint = () => {
     window.print();
   };
 
   const handleDownloadJson = () => {
-    forensicApi.downloadJson(currentCase.case_id);
+    forensicApi.downloadJson(currentCase?.case_id);
   };
 
   const handleDownloadCsv = () => {
-    forensicApi.downloadCsv(currentCase.case_id);
+    forensicApi.downloadCsv(currentCase?.case_id);
   };
 
-  const isHighRisk = currentCase.authenticity_score <= 30;
-  const isMediumRisk = currentCase.authenticity_score > 30 && currentCase.authenticity_score <= 60;
+  const isHighRisk = currentCase?.authenticity_score <= 30;
+  const isMediumRisk = currentCase?.authenticity_score > 30 && currentCase?.authenticity_score <= 60;
   const scoreColor = isHighRisk ? '#ef4444' : (isMediumRisk ? '#f59e0b' : '#10b981');
+
+  if (!currentCase) return null;
 
   return (
     <div style={{ maxWidth: '1440px', margin: '0 auto', padding: '24px 20px 80px' }}>
@@ -151,10 +189,10 @@ export const ForensicReportsPage: React.FC<ForensicReportsPageProps> = ({
 
           <div style={{ textAlign: 'right' }}>
             <div style={{ fontFamily: 'var(--font-mono)', fontSize: '15px', fontWeight: 700, color: '#00f0ff' }}>
-              CASE ID: {currentCase.case_id}
+              CASE ID: {currentCase?.case_id}
             </div>
             <div style={{ fontSize: '11px', color: '#94a3b8', marginTop: '2px' }}>
-              Generated: {new Date(currentCase.timestamp).toUTCString()}
+              Generated: {new Date(currentCase?.timestamp).toUTCString()}
             </div>
             <div style={{ fontSize: '10px', color: '#64748b' }}>
               Classification: RESTRICTED FORENSIC DOSSIER
@@ -182,16 +220,16 @@ export const ForensicReportsPage: React.FC<ForensicReportsPageProps> = ({
               Model-Based Authenticity Assessment
             </div>
             <div style={{ fontSize: '24px', fontWeight: 800, color: scoreColor, marginTop: '2px' }}>
-              {currentCase.assessment}
+              {currentCase?.assessment}
             </div>
             <div style={{ fontSize: '12px', color: '#cbd5e1', marginTop: '4px' }}>
-              Risk Level: <strong>{currentCase.risk_level}</strong> &bull; System Confidence: <strong>{currentCase.confidence_level} ({Math.round(currentCase.confidence_score * 100)}%)</strong>
+              Risk Level: <strong>{currentCase?.risk_level}</strong> &bull; System Confidence: <strong>{currentCase?.confidence_level} ({Math.round(currentCase?.confidence_score * 100)}%)</strong>
             </div>
           </div>
 
           <div style={{ textAlign: 'right' }}>
             <div style={{ fontSize: '36px', fontWeight: 800, fontFamily: 'var(--font-mono)', color: '#f8fafc' }}>
-              {currentCase.authenticity_score} <span style={{ fontSize: '16px', color: '#64748b' }}>/ 100</span>
+              {currentCase?.authenticity_score} <span style={{ fontSize: '16px', color: '#64748b' }}>/ 100</span>
             </div>
             <div style={{ fontSize: '10px', color: '#64748b', textTransform: 'uppercase' }}>
               AUTHENTICITY INDEX
@@ -207,29 +245,29 @@ export const ForensicReportsPage: React.FC<ForensicReportsPageProps> = ({
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px' }}>
             <div style={{ background: 'rgba(15, 23, 42, 0.6)', padding: '12px', borderRadius: '6px' }}>
               <div style={{ fontSize: '10px', color: '#94a3b8', textTransform: 'uppercase' }}>AI Generation Prob</div>
-              <div style={{ fontSize: '18px', fontWeight: 700, fontFamily: 'var(--font-mono)', color: currentCase.ai_generation_probability > 70 ? '#f87171' : '#34d399' }}>
-                {currentCase.ai_generation_probability.toFixed(1)}%
+              <div style={{ fontSize: '18px', fontWeight: 700, fontFamily: 'var(--font-mono)', color: currentCase?.ai_generation_probability > 70 ? '#f87171' : '#34d399' }}>
+                {currentCase?.ai_generation_probability.toFixed(1)}%
               </div>
             </div>
 
             <div style={{ background: 'rgba(15, 23, 42, 0.6)', padding: '12px', borderRadius: '6px' }}>
               <div style={{ fontSize: '10px', color: '#94a3b8', textTransform: 'uppercase' }}>Manipulation Risk</div>
-              <div style={{ fontSize: '18px', fontWeight: 700, fontFamily: 'var(--font-mono)', color: currentCase.manipulation_risk > 50 ? '#fbbf24' : '#34d399' }}>
-                {currentCase.manipulation_risk.toFixed(1)}%
+              <div style={{ fontSize: '18px', fontWeight: 700, fontFamily: 'var(--font-mono)', color: currentCase?.manipulation_risk > 50 ? '#fbbf24' : '#34d399' }}>
+                {currentCase?.manipulation_risk.toFixed(1)}%
               </div>
             </div>
 
             <div style={{ background: 'rgba(15, 23, 42, 0.6)', padding: '12px', borderRadius: '6px' }}>
               <div style={{ fontSize: '10px', color: '#94a3b8', textTransform: 'uppercase' }}>Forensic Anomaly</div>
               <div style={{ fontSize: '18px', fontWeight: 700, fontFamily: 'var(--font-mono)', color: '#f8fafc' }}>
-                {currentCase.forensic_anomaly_score.toFixed(1)}%
+                {currentCase?.forensic_anomaly_score.toFixed(1)}%
               </div>
             </div>
 
             <div style={{ background: 'rgba(15, 23, 42, 0.6)', padding: '12px', borderRadius: '6px' }}>
               <div style={{ fontSize: '10px', color: '#94a3b8', textTransform: 'uppercase' }}>Metadata Risk</div>
               <div style={{ fontSize: '18px', fontWeight: 700, fontFamily: 'var(--font-mono)', color: '#94a3b8' }}>
-                {currentCase.metadata_risk_score.toFixed(1)}%
+                {currentCase?.metadata_risk_score.toFixed(1)}%
               </div>
             </div>
           </div>
@@ -252,7 +290,7 @@ export const ForensicReportsPage: React.FC<ForensicReportsPageProps> = ({
               </tr>
             </thead>
             <tbody>
-              {currentCase.signals.map((sig, idx) => (
+              {currentCase?.signals.map((sig, idx) => (
                 <tr key={idx} style={{ borderBottom: '1px solid rgba(56, 189, 248, 0.08)' }}>
                   <td style={{ padding: '10px 12px', fontWeight: 600, color: '#f8fafc' }}>{sig.name}</td>
                   <td style={{ padding: '10px 12px', color: '#94a3b8' }}>{sig.category}</td>
@@ -286,7 +324,7 @@ export const ForensicReportsPage: React.FC<ForensicReportsPageProps> = ({
               lineHeight: 1.6
             }}
           >
-            {currentCase.why_result_explanation}
+            {currentCase?.why_result_explanation}
           </div>
         </div>
 
@@ -297,14 +335,14 @@ export const ForensicReportsPage: React.FC<ForensicReportsPageProps> = ({
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '10px', fontSize: '12px' }}>
             <div style={{ background: 'rgba(15, 23, 42, 0.6)', padding: '8px 12px', borderRadius: '4px' }}>
-              <span style={{ color: '#64748b' }}>File Name:</span> <strong style={{ color: '#f8fafc' }}>{currentCase.file_name}</strong>
+              <span style={{ color: '#64748b' }}>File Name:</span> <strong style={{ color: '#f8fafc' }}>{currentCase?.file_name}</strong>
             </div>
             <div style={{ background: 'rgba(15, 23, 42, 0.6)', padding: '8px 12px', borderRadius: '4px' }}>
-              <span style={{ color: '#64748b' }}>MIME Container:</span> <strong style={{ color: '#f8fafc' }}>{currentCase.metadata.mime_type}</strong>
+              <span style={{ color: '#64748b' }}>MIME Container:</span> <strong style={{ color: '#f8fafc' }}>{currentCase?.metadata.mime_type}</strong>
             </div>
             <div style={{ background: 'rgba(15, 23, 42, 0.6)', padding: '8px 12px', borderRadius: '4px', gridColumn: 'span 2' }}>
               <span style={{ color: '#64748b' }}>SHA-256 Checksum:</span>{' '}
-              <strong style={{ fontFamily: 'var(--font-mono)', color: '#00f0ff' }}>{currentCase.metadata.hash_sha256}</strong>
+              <strong style={{ fontFamily: 'var(--font-mono)', color: '#00f0ff' }}>{currentCase?.metadata.hash_sha256}</strong>
             </div>
           </div>
         </div>
@@ -322,7 +360,7 @@ export const ForensicReportsPage: React.FC<ForensicReportsPageProps> = ({
             marginBottom: '20px'
           }}
         >
-          <strong>Forensic Limitations Notice:</strong> {currentCase.limitations} {currentCase.disclaimer}
+          <strong>Forensic Limitations Notice:</strong> {currentCase?.limitations} {currentCase?.disclaimer}
         </div>
 
         {/* Docket Footer */}
@@ -337,7 +375,7 @@ export const ForensicReportsPage: React.FC<ForensicReportsPageProps> = ({
             color: '#64748b'
           }}
         >
-          <div>REALCHECK AI &bull; Forensic Docket &bull; Verification Hash: {currentCase.metadata.hash_sha256.slice(0, 16)}</div>
+          <div>REALCHECK AI &bull; Forensic Docket &bull; Verification Hash: {currentCase?.metadata.hash_sha256.slice(0, 16)}</div>
           <div>Page 1 of 1 &bull; Certified Computational Forensics</div>
         </div>
       </div>

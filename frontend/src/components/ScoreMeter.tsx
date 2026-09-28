@@ -22,17 +22,17 @@ export const ScoreMeter: React.FC<ScoreMeterProps> = ({
   const circumference = 2 * Math.PI * radius;
   const strokeDashoffset = circumference - (score / 100) * circumference;
 
-  let strokeColor = '#10b981'; // green (low risk / high authenticity)
+  let strokeColor = 'var(--risk-low)'; // green (low risk / high authenticity)
   let glowColor = 'rgba(16, 185, 129, 0.4)';
 
   if (riskLevel === 'High Risk' || score <= 30) {
-    strokeColor = '#ef4444'; // red
+    strokeColor = 'var(--risk-high)'; // red
     glowColor = 'rgba(239, 68, 68, 0.4)';
   } else if (riskLevel === 'Medium Risk' || score <= 60) {
-    strokeColor = '#f59e0b'; // amber
+    strokeColor = 'var(--risk-medium)'; // amber
     glowColor = 'rgba(245, 158, 11, 0.4)';
   } else if (riskLevel === 'Uncertain') {
-    strokeColor = '#94a3b8'; // gray
+    strokeColor = 'var(--text-muted)'; // gray
     glowColor = 'rgba(148, 163, 184, 0.3)';
   }
 
@@ -82,18 +82,18 @@ export const ScoreMeter: React.FC<ScoreMeterProps> = ({
             pointerEvents: 'none'
           }}
         >
-          <span style={{ fontSize: size * 0.11, color: '#94a3b8', letterSpacing: '1px', textTransform: 'uppercase', fontWeight: 600 }}>
+          <span style={{ fontSize: size * 0.11, color: 'var(--text-muted)', letterSpacing: '1px', textTransform: 'uppercase', fontWeight: 600 }}>
             Authenticity
           </span>
           <div style={{ display: 'flex', alignItems: 'baseline' }}>
-            <span style={{ fontSize: size * 0.28, fontWeight: 800, fontFamily: 'var(--font-mono)', color: '#f8fafc' }}>
+            <span style={{ fontSize: size * 0.28, fontWeight: 800, fontFamily: 'var(--font-mono)', color: 'var(--text-main)' }}>
               {score}
             </span>
-            <span style={{ fontSize: size * 0.11, color: '#64748b', fontFamily: 'var(--font-mono)', marginLeft: '2px' }}>
+            <span style={{ fontSize: size * 0.11, color: 'var(--text-dim)', fontFamily: 'var(--font-mono)', marginLeft: '2px' }}>
               /100
             </span>
           </div>
-          <span style={{ fontSize: size * 0.08, color: '#38bdf8', fontFamily: 'var(--font-mono)' }}>
+          <span style={{ fontSize: size * 0.08, color: 'var(--blue-soft)', fontFamily: 'var(--font-mono)' }}>
             Conf: {Math.round(confidenceScore * 100)}%
           </span>
         </div>
@@ -111,7 +111,7 @@ export const ScoreMeter: React.FC<ScoreMeterProps> = ({
         >
           {assessment}
         </div>
-        <div style={{ marginTop: '4px', fontSize: '11px', color: '#94a3b8', letterSpacing: '0.4px' }}>
+        <div style={{ marginTop: '4px', fontSize: '11px', color: 'var(--text-muted)', letterSpacing: '0.4px' }}>
           MODEL-BASED AUTHENTICITY ASSESSMENT
         </div>
       </div>

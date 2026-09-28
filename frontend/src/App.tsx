@@ -1,8 +1,11 @@
 import React, { useState, useEffect } from 'react';
+import { BrowserRouter, Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { Header } from './components/Header';
+import { Sidebar } from './components/Sidebar';
 import { Footer } from './components/Footer';
 import { CommandPalette } from './components/CommandPalette';
 import { OverviewPage } from './pages/OverviewPage';
+import { NewInvestigationPage } from './pages/NewInvestigationPage';
 import { ImageForensicsPage } from './pages/ImageForensicsPage';
 import { VideoForensicsPage } from './pages/VideoForensicsPage';
 import { AudioForensicsPage } from './pages/AudioForensicsPage';
@@ -12,194 +15,141 @@ import { CentralizedAiHubPage } from './pages/CentralizedAiHubPage';
 import { ModelInsightsPage } from './pages/ModelInsightsPage';
 import { ForensicReportsPage } from './pages/ForensicReportsPage';
 import { ArchitectureAboutPage } from './pages/ArchitectureAboutPage';
-import { 
-  Activity, 
-  Image as ImageIcon, 
-  Video as VideoIcon, 
-  Mic, 
-  FileText, 
-  FolderKanban, 
-  Network, 
-  FileSpreadsheet 
-} from 'lucide-react';
+import { LoginPage } from './pages/LoginPage';
+import { SignupPage } from './pages/SignupPage';
+import { ForgotPasswordPage } from './pages/ForgotPasswordPage';
+import { SettingsPage } from './pages/SettingsPage';
+import { InvestigationProvider, useInvestigation } from './contexts/InvestigationContext';
+import { AuthProvider } from './contexts/AuthContext';
+import { ProtectedRoute } from './components/ProtectedRoute';
 
-export function App() {
-  const [currentTab, setCurrentTab] = useState<string>('overview');
-  const [activeCaseId, setActiveCaseId] = useState<string>('RC-2026-0042');
+function AppLayout() {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const { activeCaseId, setActiveCaseId } = useInvestigation();
   const [isSearchOpen, setIsSearchOpen] = useState<boolean>(false);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState<boolean>(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState<boolean>(false);
 
-  // Scroll to top when tab changes
+  // Derive current tab from pathname (e.g. /image/123 -> image)
+  const pathParts = location.pathname.split('/');
+  const currentTab = pathParts[1] || 'overview';
+  const urlCaseId = pathParts[2];
+
+  // Sync URL case ID with context
+  useEffect(() => {
+    if (urlCaseId && urlCaseId !== activeCaseId) {
+      setActiveCaseId(urlCaseId);
+    }
+  }, [urlCaseId, activeCaseId, setActiveCaseId]);
+
+  // Scroll to top on navigation
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
-  }, [currentTab]);
+  }, [location.pathname]);
 
-  const handleGenerateReport = (caseId: string) => {
-    setActiveCaseId(caseId);
-    setCurrentTab('reports');
+  const handleNavigate = (tab: string, caseId?: string) => {
+    navigate(`/${tab}${caseId ? `/${caseId}` : `/${activeCaseId}`}`);
   };
 
   const handleSelectCase = (caseId: string) => {
     setActiveCaseId(caseId);
+    navigate(`/${currentTab}/${caseId}`);
   };
 
-  const renderActivePage = () => {
-    switch (currentTab) {
-      case 'overview':
-        return (
-          <OverviewPage
-            onNavigate={(tab) => setCurrentTab(tab)}
-            onSelectCase={handleSelectCase}
-          />
-        );
-      case 'image':
-        return (
-          <ImageForensicsPage
-            onGenerateReport={handleGenerateReport}
-            onNavigate={(tab) => setCurrentTab(tab)}
-            initialCaseId={activeCaseId}
-          />
-        );
-      case 'video':
-        return (
-          <VideoForensicsPage
-            onGenerateReport={handleGenerateReport}
-            onNavigate={(tab) => setCurrentTab(tab)}
-            initialCaseId={activeCaseId}
-          />
-        );
-      case 'audio':
-        return (
-          <AudioForensicsPage
-            onGenerateReport={handleGenerateReport}
-            onNavigate={(tab) => setCurrentTab(tab)}
-            initialCaseId={activeCaseId}
-          />
-        );
-      case 'text':
-        return (
-          <TextStylometryPage
-            onGenerateReport={handleGenerateReport}
-            onNavigate={(tab) => setCurrentTab(tab)}
-            initialCaseId={activeCaseId}
-          />
-        );
-      case 'workspace':
-        return (
-          <InvestigationWorkspacePage
-            onNavigate={(tab) => setCurrentTab(tab)}
-            onSelectCase={handleSelectCase}
-            onGenerateReport={handleGenerateReport}
-          />
-        );
-      case 'ai-hub':
-        return (
-          <CentralizedAiHubPage
-            onNavigate={(tab) => setCurrentTab(tab)}
-          />
-        );
-      case 'models':
-        return <ModelInsightsPage />;
-      case 'reports':
-        return (
-          <ForensicReportsPage
-            selectedCaseId={activeCaseId}
-            onNavigate={(tab) => setCurrentTab(tab)}
-          />
-        );
-      case 'about':
-        return (
-          <ArchitectureAboutPage
-            onNavigate={(tab) => setCurrentTab(tab)}
-          />
-        );
-      default:
-        return (
-          <OverviewPage
-            onNavigate={(tab) => setCurrentTab(tab)}
-            onSelectCase={handleSelectCase}
-          />
-        );
-    }
+  const handleGenerateReport = (caseId: string) => {
+    setActiveCaseId(caseId);
+    navigate(`/reports/${caseId}`);
   };
 
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', backgroundColor: 'var(--bg-deep)' }}>
-      {/* Global Header */}
-      <Header
-        currentTab={currentTab}
-        onTabChange={(tab) => setCurrentTab(tab)}
-        onOpenSearch={() => setIsSearchOpen(true)}
-        activeCaseId={activeCaseId}
+    <div style={{ minHeight: '100vh', display: 'flex', backgroundColor: 'var(--bg-deep)' }}>
+      <Sidebar 
+        currentTab={currentTab} 
+        onTabChange={handleNavigate}
+        isCollapsed={isSidebarCollapsed}
+        setIsCollapsed={setIsSidebarCollapsed}
+        mobileMenuOpen={mobileMenuOpen}
+        setMobileMenuOpen={setMobileMenuOpen}
       />
+      
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+        <Header
+          onOpenSearch={() => setIsSearchOpen(true)}
+          activeCaseId={activeCaseId}
+          setMobileMenuOpen={setMobileMenuOpen}
+        />
 
-      {/* Main Content Viewport */}
-      <main style={{ flex: 1 }}>
-        {renderActivePage()}
-      </main>
+        <main style={{ flex: 1 }}>
+          <Routes>
+            <Route path="/" element={<Navigate to="/overview" replace />} />
+            
+            <Route path="/new-investigation" element={<NewInvestigationPage onNavigate={handleNavigate} />} />
 
-      {/* Global Command Palette */}
-      <CommandPalette
-        isOpen={isSearchOpen}
-        onClose={() => setIsSearchOpen(false)}
-        onSelectCase={handleSelectCase}
-        onNavigate={(tab) => setCurrentTab(tab)}
-      />
+            <Route path="/overview" element={<OverviewPage key={activeCaseId} onNavigate={handleNavigate} onSelectCase={handleSelectCase} />} />
+            <Route path="/overview/:caseId" element={<OverviewPage key={activeCaseId} onNavigate={handleNavigate} onSelectCase={handleSelectCase} />} />
+            
+            <Route path="/image" element={<ImageForensicsPage key={activeCaseId} onGenerateReport={handleGenerateReport} onNavigate={handleNavigate} initialCaseId={activeCaseId} />} />
+            <Route path="/image/:caseId" element={<ImageForensicsPage key={activeCaseId} onGenerateReport={handleGenerateReport} onNavigate={handleNavigate} initialCaseId={activeCaseId} />} />
+            
+            <Route path="/video" element={<VideoForensicsPage key={activeCaseId} onGenerateReport={handleGenerateReport} onNavigate={handleNavigate} initialCaseId={activeCaseId} />} />
+            <Route path="/video/:caseId" element={<VideoForensicsPage key={activeCaseId} onGenerateReport={handleGenerateReport} onNavigate={handleNavigate} initialCaseId={activeCaseId} />} />
+            
+            <Route path="/audio" element={<AudioForensicsPage key={activeCaseId} onGenerateReport={handleGenerateReport} onNavigate={handleNavigate} initialCaseId={activeCaseId} />} />
+            <Route path="/audio/:caseId" element={<AudioForensicsPage key={activeCaseId} onGenerateReport={handleGenerateReport} onNavigate={handleNavigate} initialCaseId={activeCaseId} />} />
+            
+            <Route path="/text" element={<TextStylometryPage key={activeCaseId} onGenerateReport={handleGenerateReport} onNavigate={handleNavigate} initialCaseId={activeCaseId} />} />
+            <Route path="/text/:caseId" element={<TextStylometryPage key={activeCaseId} onGenerateReport={handleGenerateReport} onNavigate={handleNavigate} initialCaseId={activeCaseId} />} />
+            
+            <Route path="/workspace" element={<InvestigationWorkspacePage key={activeCaseId} onNavigate={handleNavigate} onSelectCase={handleSelectCase} onGenerateReport={handleGenerateReport} />} />
+            <Route path="/workspace/:caseId" element={<InvestigationWorkspacePage key={activeCaseId} onNavigate={handleNavigate} onSelectCase={handleSelectCase} onGenerateReport={handleGenerateReport} />} />
+            
+            <Route path="/ai-hub" element={<CentralizedAiHubPage key={activeCaseId} onNavigate={handleNavigate} />} />
+            <Route path="/ai-hub/:caseId" element={<CentralizedAiHubPage key={activeCaseId} onNavigate={handleNavigate} />} />
+            
+            <Route path="/models" element={<ModelInsightsPage />} />
+            
+            <Route path="/reports" element={<ForensicReportsPage key={activeCaseId} selectedCaseId={activeCaseId} onNavigate={handleNavigate} />} />
+            <Route path="/reports/:caseId" element={<ForensicReportsPage key={activeCaseId} selectedCaseId={activeCaseId} onNavigate={handleNavigate} />} />
+            
+            <Route path="/about" element={<ArchitectureAboutPage key={activeCaseId} onNavigate={handleNavigate} />} />
+            <Route path="/settings" element={<SettingsPage />} />
+            
+            <Route path="*" element={<Navigate to="/overview" replace />} />
+          </Routes>
+        </main>
 
-      {/* Global Footer */}
-      <Footer onNavigate={(tab) => setCurrentTab(tab)} />
+        <CommandPalette
+          isOpen={isSearchOpen}
+          onClose={() => setIsSearchOpen(false)}
+          onSelectCase={handleSelectCase}
+          onNavigate={handleNavigate}
+        />
 
-      {/* Mobile Bottom Navigation Bar (Visible on small screens) */}
-      <div
-        className="no-print"
-        style={{
-          position: 'fixed',
-          bottom: 0,
-          left: 0,
-          right: 0,
-          backgroundColor: 'rgba(6, 9, 17, 0.96)',
-          backdropFilter: 'blur(16px)',
-          borderTop: '1px solid rgba(56, 189, 248, 0.2)',
-          display: 'none', // enabled via media query or default flex on narrow screens
-          justifyContent: 'space-around',
-          padding: '8px 4px',
-          zIndex: 40
-        }}
-        id="mobile-bottom-nav"
-      >
-        {[
-          { id: 'overview', label: 'Overview', icon: Activity },
-          { id: 'image', label: 'Image', icon: ImageIcon },
-          { id: 'video', label: 'Video', icon: VideoIcon },
-          { id: 'audio', label: 'Audio', icon: Mic },
-          { id: 'text', label: 'Text', icon: FileText },
-          { id: 'workspace', label: 'Cases', icon: FolderKanban },
-          { id: 'reports', label: 'Report', icon: FileSpreadsheet },
-        ].map((item) => {
-          const Icon = item.icon;
-          const isActive = currentTab === item.id;
-          return (
-            <button
-              key={item.id}
-              onClick={() => setCurrentTab(item.id)}
-              style={{
-                background: 'transparent',
-                border: 'none',
-                color: isActive ? '#00f0ff' : '#94a3b8',
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                gap: '2px',
-                fontSize: '10px',
-                cursor: 'pointer'
-              }}
-            >
-              <Icon size={16} />
-              <span>{item.label}</span>
-            </button>
-          );
-        })}
+        <Footer onNavigate={handleNavigate} />
       </div>
     </div>
+  );
+}
+
+export function App() {
+  return (
+    <BrowserRouter>
+      <AuthProvider>
+        <Routes>
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/signup" element={<SignupPage />} />
+          <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+          <Route path="*" element={
+            <ProtectedRoute>
+              <InvestigationProvider>
+                <AppLayout />
+              </InvestigationProvider>
+            </ProtectedRoute>
+          } />
+        </Routes>
+      </AuthProvider>
+    </BrowserRouter>
   );
 }
 
