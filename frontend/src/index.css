@@ -1,9 +1,11 @@
 /* REALCHECK AI - Digital Forensics & Authenticity Platform Stylesheet */
 @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Outfit:wght@300;400;500;600;700;800&display=swap');
 
-:root {
+:root, [data-theme='dark'] {
+  /* Dark Mode (Default Forensic Theme) */
   --bg-deep: #060911;
   --bg-card: rgba(13, 19, 33, 0.85);
+  --bg-card-solid: #0d1321;
   --bg-card-hover: rgba(20, 29, 51, 0.95);
   --border-subtle: rgba(56, 189, 248, 0.18);
   --border-active: rgba(0, 240, 255, 0.5);
@@ -12,9 +14,35 @@
   --cyan-primary: #00f0ff;
   --cyan-muted: #06b6d4;
   --blue-soft: #38bdf8;
-  --text-white: #f8fafc;
+  --text-main: #f8fafc;
   --text-muted: #94a3b8;
   --text-dim: #64748b;
+  --text-invert: #030a16;
+  
+  --bg-body-pattern-1: rgba(0, 240, 255, 0.05);
+  --bg-body-gradient-start: rgba(6, 9, 17, 0.85);
+  --bg-body-gradient-end: rgba(6, 9, 17, 1);
+
+  --btn-primary-bg: linear-gradient(135deg, #00d2ff 0%, #0084ff 100%);
+  --btn-primary-text: #030a16;
+  --btn-secondary-bg: rgba(15, 23, 42, 0.8);
+  --btn-secondary-hover: rgba(30, 58, 95, 0.5);
+
+  --risk-high-bg: rgba(239, 68, 68, 0.15);
+  --risk-high-border: rgba(239, 68, 68, 0.4);
+  --risk-high-text: #f87171;
+  
+  --risk-medium-bg: rgba(245, 158, 11, 0.15);
+  --risk-medium-border: rgba(245, 158, 11, 0.4);
+  --risk-medium-text: #fbbf24;
+  
+  --risk-low-bg: rgba(16, 185, 129, 0.15);
+  --risk-low-border: rgba(16, 185, 129, 0.4);
+  --risk-low-text: #34d399;
+  
+  --risk-uncertain-bg: rgba(148, 163, 184, 0.15);
+  --risk-uncertain-border: rgba(148, 163, 184, 0.4);
+  --risk-uncertain-text: #cbd5e1;
 
   --risk-high: #ef4444;
   --risk-medium: #f59e0b;
@@ -25,6 +53,55 @@
   --font-mono: 'JetBrains Mono', 'Consolas', monospace;
 }
 
+[data-theme='light'] {
+  /* Light Mode (Professional/Clean Theme) */
+  --bg-deep: #f8fafc;
+  --bg-card: rgba(255, 255, 255, 0.85);
+  --bg-card-solid: #ffffff;
+  --bg-card-hover: rgba(241, 245, 249, 0.95);
+  --border-subtle: rgba(203, 213, 225, 0.8);
+  --border-active: rgba(14, 165, 233, 0.5);
+  --border-glow: 0 0 16px rgba(14, 165, 233, 0.15);
+
+  --cyan-primary: #0ea5e9;
+  --cyan-muted: #38bdf8;
+  --blue-soft: #0284c7;
+  --text-main: #0f172a;
+  --text-muted: #475569;
+  --text-dim: #64748b;
+  --text-invert: #ffffff;
+  
+  --bg-body-pattern-1: rgba(14, 165, 233, 0.05);
+  --bg-body-gradient-start: rgba(248, 250, 252, 0.85);
+  --bg-body-gradient-end: rgba(248, 250, 252, 1);
+
+  --btn-primary-bg: linear-gradient(135deg, #0ea5e9 0%, #2563eb 100%);
+  --btn-primary-text: #ffffff;
+  --btn-secondary-bg: rgba(241, 245, 249, 0.8);
+  --btn-secondary-hover: rgba(226, 232, 240, 0.9);
+
+  --risk-high-bg: rgba(220, 38, 38, 0.15);
+  --risk-high-border: rgba(220, 38, 38, 0.4);
+  --risk-high-text: #b91c1c;
+  
+  --risk-medium-bg: rgba(217, 119, 6, 0.15);
+  --risk-medium-border: rgba(217, 119, 6, 0.4);
+  --risk-medium-text: #b45309;
+  
+  --risk-low-bg: rgba(5, 150, 105, 0.15);
+  --risk-low-border: rgba(5, 150, 105, 0.4);
+  --risk-low-text: #047857;
+  
+  --risk-uncertain-bg: rgba(100, 116, 139, 0.15);
+  --risk-uncertain-border: rgba(100, 116, 139, 0.4);
+  --risk-uncertain-text: #475569;
+
+  --risk-high: #dc2626;
+  --risk-medium: #d97706;
+  --risk-low: #059669;
+  --risk-uncertain: #64748b;
+}
+
 * {
   box-sizing: border-box;
   margin: 0;
@@ -33,13 +110,13 @@
 
 body {
   background-color: var(--bg-deep);
-  color: var(--text-white);
+  color: var(--text-main);
   font-family: var(--font-sans);
   min-height: 100vh;
   overflow-x: hidden;
   background-image: 
-    radial-gradient(rgba(0, 240, 255, 0.05) 1px, transparent 1px),
-    linear-gradient(180deg, rgba(6, 9, 17, 0.85) 0%, rgba(6, 9, 17, 1) 100%);
+    radial-gradient(var(--bg-body-pattern-1) 1px, transparent 1px),
+    linear-gradient(180deg, var(--bg-body-gradient-start) 0%, var(--bg-body-gradient-end) 100%);
   background-size: 28px 28px, 100% 100%;
   -webkit-font-smoothing: antialiased;
 }
@@ -150,8 +227,8 @@ body {
 
 /* Buttons */
 .btn-cyber-primary {
-  background: linear-gradient(135deg, #00d2ff 0%, #0084ff 100%);
-  color: #030a16;
+  background: var(--btn-primary-bg);
+  color: var(--btn-primary-text);
   font-weight: 700;
   font-size: 13px;
   letter-spacing: 0.8px;
@@ -174,7 +251,7 @@ body {
 }
 
 .btn-cyber-secondary {
-  background: rgba(15, 23, 42, 0.8);
+  background: var(--btn-secondary-bg);
   border: 1px solid var(--border-subtle);
   color: var(--blue-soft);
   font-weight: 600;
@@ -190,17 +267,17 @@ body {
 }
 
 .btn-cyber-secondary:hover {
-  background: rgba(30, 58, 95, 0.5);
+  background: var(--btn-secondary-hover);
   border-color: var(--cyan-primary);
-  color: var(--text-white);
-  box-shadow: 0 0 12px rgba(0, 240, 255, 0.2);
+  color: var(--text-main);
+  box-shadow: var(--border-glow);
 }
 
 /* Badge styles */
 .badge-risk-high {
-  background: rgba(239, 68, 68, 0.15);
-  border: 1px solid rgba(239, 68, 68, 0.4);
-  color: #f87171;
+  background: var(--risk-high-bg);
+  border: 1px solid var(--risk-high-border);
+  color: var(--risk-high-text);
   font-family: var(--font-mono);
   font-size: 11px;
   font-weight: 600;
@@ -209,9 +286,9 @@ body {
 }
 
 .badge-risk-medium {
-  background: rgba(245, 158, 11, 0.15);
-  border: 1px solid rgba(245, 158, 11, 0.4);
-  color: #fbbf24;
+  background: var(--risk-medium-bg);
+  border: 1px solid var(--risk-medium-border);
+  color: var(--risk-medium-text);
   font-family: var(--font-mono);
   font-size: 11px;
   font-weight: 600;
@@ -220,9 +297,9 @@ body {
 }
 
 .badge-risk-low {
-  background: rgba(16, 185, 129, 0.15);
-  border: 1px solid rgba(16, 185, 129, 0.4);
-  color: #34d399;
+  background: var(--risk-low-bg);
+  border: 1px solid var(--risk-low-border);
+  color: var(--risk-low-text);
   font-family: var(--font-mono);
   font-size: 11px;
   font-weight: 600;
@@ -231,9 +308,9 @@ body {
 }
 
 .badge-risk-uncertain {
-  background: rgba(148, 163, 184, 0.15);
-  border: 1px solid rgba(148, 163, 184, 0.4);
-  color: #cbd5e1;
+  background: var(--risk-uncertain-bg);
+  border: 1px solid var(--risk-uncertain-border);
+  color: var(--risk-uncertain-text);
   font-family: var(--font-mono);
   font-size: 11px;
   font-weight: 600;
@@ -269,5 +346,23 @@ body {
   }
   .print-only {
     display: block !important;
+  }
+}
+
+/* Responsive helpers */
+@media (max-width: 767px) {
+  .desktop-only, .desktop-only-flex {
+    display: none !important;
+  }
+  .mobile-only {
+    display: block !important;
+  }
+  button.mobile-only {
+    display: flex !important;
+  }
+}
+@media (min-width: 768px) {
+  .mobile-only {
+    display: none !important;
   }
 }

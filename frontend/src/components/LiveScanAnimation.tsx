@@ -75,20 +75,20 @@ export const LiveScanAnimation: React.FC<LiveScanAnimationProps> = ({
             <Activity size={20} color="#00f0ff" className="radar-sweep" />
           </div>
           <div>
-            <div style={{ fontSize: '16px', fontWeight: 800, letterSpacing: '1px', color: '#f8fafc' }}>
+            <div style={{ fontSize: '16px', fontWeight: 800, letterSpacing: '1px', color: 'var(--text-main)' }}>
               FORENSIC PIPELINE IN EXECUTION
             </div>
-            <div style={{ fontSize: '11px', color: '#38bdf8', letterSpacing: '0.5px' }}>
+            <div style={{ fontSize: '11px', color: 'var(--blue-soft)', letterSpacing: '0.5px' }}>
               MULTI-SIGNAL EVIDENCE EXTRACTION &bull; {mediaType} ENGINE
             </div>
           </div>
         </div>
 
         <div style={{ textAlign: 'right' }}>
-          <div style={{ fontSize: '22px', fontWeight: 800, fontFamily: 'var(--font-mono)', color: '#00f0ff' }}>
+          <div style={{ fontSize: '22px', fontWeight: 800, fontFamily: 'var(--font-mono)', color: 'var(--cyan-primary)' }}>
             {progressPct}%
           </div>
-          <div style={{ fontSize: '10px', color: '#64748b' }}>PROGRESS</div>
+          <div style={{ fontSize: '10px', color: 'var(--text-dim)' }}>PROGRESS</div>
         </div>
       </div>
 
@@ -141,7 +141,7 @@ export const LiveScanAnimation: React.FC<LiveScanAnimationProps> = ({
                     fontFamily: 'var(--font-mono)',
                     fontSize: '11px',
                     fontWeight: 700,
-                    color: isCurrent ? '#00f0ff' : (isDone ? '#34d399' : '#64748b')
+                    color: isCurrent ? 'var(--cyan-primary)' : (isDone ? 'var(--risk-low)' : 'var(--text-dim)')
                   }}
                 >
                   {step.num}
@@ -153,12 +153,12 @@ export const LiveScanAnimation: React.FC<LiveScanAnimationProps> = ({
                       fontSize: '12px',
                       fontWeight: 700,
                       letterSpacing: '0.6px',
-                      color: isCurrent ? '#f8fafc' : (isDone ? '#e2e8f0' : '#64748b')
+                      color: isCurrent ? 'var(--text-main)' : (isDone ? '#e2e8f0' : 'var(--text-dim)')
                     }}
                   >
                     {step.title}
                   </div>
-                  <div style={{ fontSize: '11px', color: isCurrent ? '#38bdf8' : '#64748b' }}>
+                  <div style={{ fontSize: '11px', color: isCurrent ? 'var(--blue-soft)' : 'var(--text-dim)' }}>
                     {step.desc}
                   </div>
                 </div>
@@ -167,7 +167,7 @@ export const LiveScanAnimation: React.FC<LiveScanAnimationProps> = ({
               <div>
                 {isDone && <CheckCircle2 size={16} color="#10b981" />}
                 {isCurrent && <Loader2 size={16} color="#00f0ff" style={{ animation: 'spin 1s linear infinite' }} />}
-                {isPending && <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#1e293b', display: 'inline-block' }} />}
+                {isPending && <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: 'var(--border-subtle)', display: 'inline-block' }} />}
               </div>
             </div>
           );

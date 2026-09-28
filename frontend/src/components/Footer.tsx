@@ -11,7 +11,7 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
       className="no-print"
       style={{
         borderTop: '1px solid rgba(56, 189, 248, 0.15)',
-        backgroundColor: '#050811',
+        backgroundColor: 'var(--bg-deep)',
         padding: '48px 24px 32px'
       }}
     >
@@ -34,24 +34,24 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
               >
                 <Crosshair size={14} color="#00f0ff" />
               </div>
-              <span style={{ fontSize: '16px', fontWeight: 800, letterSpacing: '2px', color: '#f8fafc' }}>
+              <span style={{ fontSize: '16px', fontWeight: 800, letterSpacing: '2px', color: 'var(--text-main)' }}>
                 REALCHECK AI
               </span>
             </div>
-            <p style={{ fontSize: '13px', color: '#00f0ff', fontWeight: 600, marginBottom: '6px' }}>
+            <p style={{ fontSize: '13px', color: 'var(--cyan-primary)', fontWeight: 600, marginBottom: '6px' }}>
               “Don’t just detect. Investigate, explain, and verify.”
             </p>
-            <p style={{ fontSize: '12px', color: '#94a3b8', lineHeight: 1.5 }}>
+            <p style={{ fontSize: '12px', color: 'var(--text-muted)', lineHeight: 1.5 }}>
               One Platform. Four Media Types. Explainable Digital Authenticity.
             </p>
           </div>
 
           {/* Quick Engine Links */}
           <div>
-            <div style={{ fontSize: '12px', fontWeight: 700, color: '#38bdf8', letterSpacing: '0.8px', textTransform: 'uppercase', marginBottom: '12px' }}>
+            <div style={{ fontSize: '12px', fontWeight: 700, color: 'var(--blue-soft)', letterSpacing: '0.8px', textTransform: 'uppercase', marginBottom: '12px' }}>
               Forensic Engines
             </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '12px', color: '#94a3b8' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '12px', color: 'var(--text-muted)' }}>
               <span onClick={() => onNavigate('image')} style={{ cursor: 'pointer', transition: 'color 0.15s' }}>Image Forensics (ViT + FFT)</span>
               <span onClick={() => onNavigate('video')} style={{ cursor: 'pointer', transition: 'color 0.15s' }}>Video Analysis (Spatial-Temporal)</span>
               <span onClick={() => onNavigate('audio')} style={{ cursor: 'pointer', transition: 'color 0.15s' }}>Audio Authenticity (Mel-Spectrogram)</span>
@@ -61,10 +61,10 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
 
           {/* Platform Links */}
           <div>
-            <div style={{ fontSize: '12px', fontWeight: 700, color: '#38bdf8', letterSpacing: '0.8px', textTransform: 'uppercase', marginBottom: '12px' }}>
+            <div style={{ fontSize: '12px', fontWeight: 700, color: 'var(--blue-soft)', letterSpacing: '0.8px', textTransform: 'uppercase', marginBottom: '12px' }}>
               Investigation &amp; Hub
             </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '12px', color: '#94a3b8' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '12px', color: 'var(--text-muted)' }}>
               <span onClick={() => onNavigate('workspace')} style={{ cursor: 'pointer' }}>Multi-Media Case Dossier</span>
               <span onClick={() => onNavigate('ai-hub')} style={{ cursor: 'pointer' }}>Centralized Explainable AI Hub</span>
               <span onClick={() => onNavigate('reports')} style={{ cursor: 'pointer' }}>Forensic Report Generator</span>
@@ -74,10 +74,10 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
 
           {/* Forensic Philosophy */}
           <div>
-            <div style={{ fontSize: '12px', fontWeight: 700, color: '#38bdf8', letterSpacing: '0.8px', textTransform: 'uppercase', marginBottom: '12px' }}>
+            <div style={{ fontSize: '12px', fontWeight: 700, color: 'var(--blue-soft)', letterSpacing: '0.8px', textTransform: 'uppercase', marginBottom: '12px' }}>
               Forensic Philosophy
             </div>
-            <div style={{ fontSize: '11px', color: '#64748b', lineHeight: 1.6 }}>
+            <div style={{ fontSize: '11px', color: 'var(--text-dim)', lineHeight: 1.6 }}>
               <div>&bull; “Investigate the evidence.”</div>
               <div>&bull; “Detection is only the first step.”</div>
               <div>&bull; “See what the model sees.”</div>
@@ -98,7 +98,7 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
             flexWrap: 'wrap',
             gap: '12px',
             fontSize: '11px',
-            color: '#64748b'
+            color: 'var(--text-dim)'
           }}
         >
           <div>

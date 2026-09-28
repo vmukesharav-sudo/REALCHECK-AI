@@ -107,3 +107,16 @@ reports/generated/*
 *.weights
 *.safetensors
 *.ckpt
+
+# Databases & Local Data
+*.db
+*.sqlite
+*.sqlite3
+
+# Scratch & Local Test Artifacts
+scratch/
+frontend/scratch/
+backend/test_dummy.jpg
+backend/batch_1.jpg
+backend/batch_2.mp4
+backend/test.wav
