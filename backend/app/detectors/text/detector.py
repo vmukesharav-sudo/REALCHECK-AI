@@ -1,11 +1,15 @@
 """
 Text Stylometry Detector Engine for RealCheck AI
-Analyzes Perplexity, Burstiness, Syntactic Uniformity, Vocabulary Entropy,
-and Repetitive Discourse markers.
+Performs Lexical Diversity, Burstiness (Sentence Length Variance),
+and structural pattern analysis using basic NLP heuristics.
 """
 import hashlib
 import time
+import re
+from datetime import datetime
 from typing import Dict, Any, Optional
+import math
+
 from ..base import BaseDetector
 from ...schemas.forensics import (
     InvestigationResult,
@@ -17,192 +21,204 @@ from ...schemas.forensics import (
 class TextDetector(BaseDetector):
     def __init__(self):
         super().__init__(
-            model_name="Transformer Encoders + Stylometric Profiler",
-            model_version="v1.0.3-nlp",
+            model_name="Stylometric & Lexical Variance Analysis",
+            model_version="v2.0.0-real-computation",
             input_type="TEXT"
         )
 
     def analyze(self, file_path_or_content: Any, metadata: Optional[Dict[str, Any]] = None) -> InvestigationResult:
         case_id = f"RC-2026-{int(time.time() % 10000):04d}"
-        file_name = (metadata or {}).get("file_name", "investigated_document.txt")
-        text_content = str(file_path_or_content) if isinstance(file_path_or_content, str) else "Sample text input."
-        file_size = f"{len(text_content.encode('utf-8')) / 1024:.1f} KB"
-        content_hash = hashlib.sha256(text_content.encode()).hexdigest()
+        file_name = (metadata or {}).get("file_name", "analyzed_document.txt")
+        file_size = "0.0 MB"
+        
+        text_content = str(file_path_or_content) if file_path_or_content else ""
+        content_hash = hashlib.sha256(text_content.encode('utf-8')).hexdigest()
+        file_size = f"{len(text_content.encode('utf-8')) / (1024):.1f} KB"
 
-        # Compute dynamic NLP metrics based on input text
-        words = text_content.split()
-        word_count = len(words)
-        sentences = [s.strip() for s in text_content.replace('!', '.').replace('?', '.').split('.') if s.strip()]
-        sentence_count = max(len(sentences), 1)
-        sentence_lengths = [len(s.split()) for s in sentences]
-        avg_len = sum(sentence_lengths) / sentence_count
-        variance = sum((l - avg_len) ** 2 for l in sentence_lengths) / sentence_count
-        std_dev = variance ** 0.5
+        signals = []
+        evidence = []
+        
+        authenticity_score = 100
+        ai_prob = 10.0
+        manip_risk = 10.0
+        forensic_anomaly = 10.0
+        meta_risk = 10.0
+        
+        why_explanation = "The text was analyzed using real local stylometric heuristics."
+        
+        burstiness = 0.0
+        lexical_diversity = 0.0
+        sentence_count = 0
+        word_count = 0
 
-        # Heuristic stylometrics
-        burstiness = round(max(0.1, min(1.0, std_dev / (avg_len + 1e-5))), 2)
-        perplexity_est = round(max(10.0, min(80.0, 15.0 + burstiness * 25)), 1)
-        ai_prob = round(max(20.0, min(95.0, 92.0 - burstiness * 50)), 1)
+        if text_content.strip():
+            try:
+                # 1. Burstiness (Sentence Length Variance)
+                sentences = [s.strip() for s in re.split(r'[.!?]+', text_content) if s.strip()]
+                sentence_count = len(sentences)
+                
+                sentence_lengths = [len(s.split()) for s in sentences]
+                
+                # 2. Lexical Diversity (Type-Token Ratio)
+                words = re.findall(r'\b\w+\b', text_content.lower())
+                word_count = len(words)
+                unique_words = set(words)
+                
+                if word_count > 0:
+                    lexical_diversity = len(unique_words) / word_count
+                
+                if sentence_count > 1:
+                    mean_length = sum(sentence_lengths) / sentence_count
+                    variance = sum((x - mean_length) ** 2 for x in sentence_lengths) / sentence_count
+                    std_dev = math.sqrt(variance)
+                    burstiness = std_dev / mean_length if mean_length > 0 else 0
+                else:
+                    burstiness = 0.0
 
-        signals = [
-            ForensicSignal(
-                name="Syntactic Uniformity & Low Burstiness",
-                category="stylometric",
-                score=ai_prob,
-                weight=0.35,
-                strength="Strong" if ai_prob > 70 else "Moderate",
-                status="Anomaly Detected" if ai_prob > 70 else "Within Normal Variance",
-                explanation=f"Sentence length standard deviation is {std_dev:.1f} words (burstiness: {burstiness}). Highly uniform rhythm is strongly correlated with LLM temperature decoding.",
-                affected_region_or_time="Body text paragraphs",
-                model_contribution_pct=38.0
-            ),
-            ForensicSignal(
-                name="Token Probability Profile & Entropy",
-                category="nlp",
-                score=round(ai_prob * 0.94, 1),
-                weight=0.30,
-                strength="Strong" if ai_prob > 70 else "Moderate",
-                status="Suspicious Pattern" if ai_prob > 70 else "Within Normal Variance",
-                explanation="Predicted token rank remains consistently within top probability decile without natural human lexical idiosyncratic choices.",
-                affected_region_or_time="Vocabulary distribution",
-                model_contribution_pct=32.0
-            ),
-            ForensicSignal(
-                name="Repetitive Discourse Connectors",
-                category="stylometric",
-                score=round(ai_prob * 0.88, 1),
-                weight=0.20,
-                strength="Moderate",
-                status="Suspicious Pattern",
-                explanation="Over-reliance on standardized structural transitions ('Furthermore', 'In conclusion', 'Crucially', 'Delve').",
-                affected_region_or_time="Clause boundaries",
-                model_contribution_pct=20.0
-            ),
-            ForensicSignal(
-                name="Grammatical Precision & Surface Fluency",
-                category="nlp",
-                score=30.0,
-                weight=0.15,
-                strength="Weak",
-                status="Within Normal Variance",
-                explanation="Exemplary syntactic coherence without grammatical fractures.",
-                affected_region_or_time="Document level",
-                model_contribution_pct=10.0
-            )
-        ]
+                if sentence_count > 3:
+                    if burstiness < 0.35:
+                        ai_prob += 40.0
+                        authenticity_score -= 30
+                        why_explanation += f" Sentence lengths are highly uniform (Burstiness: {burstiness:.2f}), which is characteristic of LLM generation algorithms prioritizing safe, average sentence structures."
+                        
+                        signals.append(
+                            ForensicSignal(
+                                name="Low Sentence Burstiness",
+                                category="stylometric",
+                                score=75.0,
+                                weight=0.40,
+                                strength="Strong",
+                                status="Suspicious Pattern",
+                                explanation=f"Low variance in sentence lengths (Burstiness: {burstiness:.2f}). Human writers typically alternate between short and long sentences.",
+                                affected_region_or_time="Document Structure",
+                                model_contribution_pct=40.0
+                            )
+                        )
+                        evidence.append(
+                            EvidenceCard(
+                                title="Uniform Sentence Cadence",
+                                status="Elevated Risk",
+                                score=75.0,
+                                risk="High Risk",
+                                explanation="Text rhythm is unnaturally consistent, lacking human structural variance.",
+                                category="stylometric"
+                            )
+                        )
+                    else:
+                        signals.append(
+                            ForensicSignal(
+                                name="Natural Sentence Burstiness",
+                                category="stylometric",
+                                score=15.0,
+                                weight=0.20,
+                                strength="Normal",
+                                status="Within Normal Variance",
+                                explanation=f"Sentence length variance (Burstiness: {burstiness:.2f}) indicates natural human stylistic rhythm.",
+                                affected_region_or_time="Document Structure",
+                                model_contribution_pct=10.0
+                            )
+                        )
+                        
+                if word_count > 50:
+                    if lexical_diversity < 0.4:
+                        ai_prob += 30.0
+                        authenticity_score -= 20
+                        why_explanation += f" Lexical diversity (TTR: {lexical_diversity:.2f}) is lower than expected, suggesting constrained vocabulary."
+                        
+                        signals.append(
+                            ForensicSignal(
+                                name="Constrained Lexical Diversity",
+                                category="lexical",
+                                score=65.0,
+                                weight=0.30,
+                                strength="Moderate",
+                                status="Suspicious Pattern",
+                                explanation=f"Type-Token Ratio ({lexical_diversity:.2f}) indicates repetitive word usage often seen in AI generation.",
+                                affected_region_or_time="Vocabulary",
+                                model_contribution_pct=30.0
+                            )
+                        )
+                    else:
+                        signals.append(
+                            ForensicSignal(
+                                name="Rich Lexical Diversity",
+                                category="lexical",
+                                score=15.0,
+                                weight=0.20,
+                                strength="Normal",
+                                status="Within Normal Variance",
+                                explanation=f"Type-Token Ratio ({lexical_diversity:.2f}) indicates healthy, varied vocabulary typical of human authorship.",
+                                affected_region_or_time="Vocabulary",
+                                model_contribution_pct=10.0
+                            )
+                        )
+                        
+                if word_count <= 20:
+                    authenticity_score -= 10
+                    why_explanation += " The provided text is too short for highly confident stylometric analysis."
 
-        evidence = [
-            EvidenceCard(
-                title="Sentence Structure Uniformity",
-                status="Elevated Risk" if ai_prob > 60 else "Normal",
-                score=round(ai_prob, 1),
-                risk="High Risk" if ai_prob > 70 else "Medium Risk",
-                explanation=f"Constricted sentence length variance (std dev: {std_dev:.1f} words).",
-                category="syntax"
-            ),
-            EvidenceCard(
-                title="Repetitive Phrasing",
-                status="Elevated Risk" if ai_prob > 60 else "Normal",
-                score=round(ai_prob * 0.9, 1),
-                risk="High Risk" if ai_prob > 70 else "Medium Risk",
-                explanation="Standard LLM rhetorical transitions and formulaic argument scaffolding.",
-                category="stylometry"
-            ),
-            EvidenceCard(
-                title="Vocabulary Consistency",
-                status="Elevated Risk" if ai_prob > 60 else "Normal",
-                score=round(ai_prob * 0.95, 1),
-                risk="High Risk" if ai_prob > 70 else "Medium Risk",
-                explanation="Predictable word frequency distributions matching top token priors.",
-                category="vocabulary"
-            ),
-            EvidenceCard(
-                title="Stylometric Fingerprint",
-                status="Elevated Risk" if ai_prob > 60 else "Normal",
-                score=round(ai_prob * 0.92, 1),
-                risk="High Risk" if ai_prob > 70 else "Medium Risk",
-                explanation="Strong similarity to instruction-tuned RLHF conversational models.",
-                category="fingerprint"
-            ),
-            EvidenceCard(
-                title="Human-like Stylistic Markers",
-                status="Present",
-                score=round(100 - ai_prob, 1),
-                risk="Low Risk",
-                explanation="Domain-specific terminology indicates human subject-matter direction.",
-                category="human_markers"
-            ),
-            EvidenceCard(
-                title="Authorship Uncertainty Notice",
-                status="Important Notice",
-                score=50.0,
-                risk="Uncertain",
-                explanation="AI-writing detection is probabilistic and cannot reliably prove human vs AI authorship.",
-                category="uncertainty"
-            )
-        ]
+            except Exception as e:
+                authenticity_score = 0
+                why_explanation = f"Error during text processing: {str(e)}"
+        else:
+            authenticity_score = 0
+            why_explanation = "No text content provided."
 
-        auth_score = int(max(10, min(95, 100 - ai_prob)))
-        assessment = "Likely AI-Assisted" if 50 <= ai_prob <= 80 else ("Likely AI-Generated" if ai_prob > 80 else "Likely Authentic")
-        risk = "High Risk" if auth_score <= 30 else ("Medium Risk" if auth_score <= 60 else "Low Risk")
-
+        risk_level = "Low Risk"
+        assessment = "Likely Authentic"
+        if authenticity_score <= 30:
+            risk_level = "High Risk"
+            assessment = "Likely AI-Generated"
+        elif authenticity_score <= 60:
+            risk_level = "Medium Risk"
+            assessment = "Likely AI-Assisted"
+            
         return InvestigationResult(
             case_id=case_id,
             media_type="TEXT",
             file_name=file_name,
             assessment=assessment,
-            authenticity_score=auth_score,
-            risk_level=risk,
+            authenticity_score=authenticity_score,
+            risk_level=risk_level,
             confidence_level="Moderate",
-            confidence_score=round(ai_prob / 100.0, 2),
-            is_demo_analysis=True,
-            disclaimer="Prototype / Demonstration Analysis. AI-writing detection is probabilistic and cannot reliably prove authorship.",
-            timestamp="2026-09-24T09:15:00Z",
-            ai_generation_probability=ai_prob,
-            manipulation_risk=round(ai_prob * 0.65, 1),
-            forensic_anomaly_score=round(ai_prob * 0.85, 1),
-            metadata_risk_score=10.0,
+            confidence_score=0.75,
+            is_demo_analysis=False,
+            disclaimer="Analysis generated from real local stylometric heuristics (Lexical Diversity & Burstiness).",
+            timestamp=datetime.utcnow().isoformat() + "Z",
+            ai_generation_probability=min(99.0, ai_prob),
+            manipulation_risk=manip_risk,
+            forensic_anomaly_score=forensic_anomaly,
+            metadata_risk_score=meta_risk,
             signals=signals,
             evidence_breakdown=evidence,
+            text_metrics={
+                "word_count": word_count,
+                "sentence_count": sentence_count,
+                "burstiness": float(f"{burstiness:.3f}"),
+                "lexical_diversity": float(f"{lexical_diversity:.3f}"),
+                "perplexity_estimate": "N/A (Requires LLM)"
+            },
             metadata=MetadataAnalysis(
                 file_name=file_name,
                 file_size_formatted=file_size,
                 mime_type="text/plain",
-                dimensions=None,
-                duration=None,
-                creation_time="2026-09-24 09:00:00 UTC",
-                software_signature="UTF-8 Text Stream",
-                camera_model=None,
-                exif_available=False,
-                editing_software_indicator="None",
                 hash_sha256=content_hash,
-                metadata_risk_score=10.0,
-                note="Metadata is supporting evidence only and can be altered or removed."
+                metadata_risk_score=meta_risk,
+                note="Computed directly from uploaded text.",
+                exif_available=False
             ),
-            text_metrics={
-                "word_count": word_count,
-                "sentence_count": sentence_count,
-                "avg_sentence_length": round(avg_len, 1),
-                "sentence_length_std_dev": round(std_dev, 1),
-                "perplexity_score": perplexity_est,
-                "burstiness_score": burstiness,
-                "repeated_phrases_count": 6,
-                "vocabulary_richness_ttr": 0.52,
-                "analyzed_text_sample": text_content[:300] + "..." if len(text_content) > 300 else text_content
-            },
-            why_result_explanation=f"The text exhibits a burstiness coefficient of {burstiness} with standard deviation of {std_dev:.1f} words per sentence. This uniform syntactic cadence combined with canonical discourse transitions ('Furthermore', 'In conclusion') indicates AI-assisted composition.",
-            top_contributing_signals=[
-                {"signal": "Syntactic Uniformity & Low Burstiness", "impact": "Strong", "weight": "38%"},
-                {"signal": "Vocabulary Perplexity Profile", "impact": "Strong", "weight": "32%"},
-                {"signal": "Repetitive Discourse Connectors", "impact": "Moderate", "weight": "20%"},
-                {"signal": "Grammatical Precision Coherence", "impact": "Weak", "weight": "10%"}
-            ],
-            limitations="Non-native English writers, academic papers, and formulaic legal/business texts inherently exhibit lower burstiness and can produce elevated AI-likelihood indicators."
+            why_result_explanation=why_explanation,
+            top_contributing_signals=[{"signal": s.name, "impact": s.strength, "weight": f"{s.weight*100:.0f}%"} for s in signals],
+            limitations="Stylometry is highly subjective. Rule-based heuristics cannot reliably detect lightly edited AI text or highly formulaic human text."
         )
 
     def explain(self, result: InvestigationResult) -> Dict[str, Any]:
         return {
-            "method": "Integrated Gradients on Token Perplexity",
-            "high_likelihood_tokens": ["Furthermore", "essential", "multifaceted", "paradigm", "testament"],
-            "human_variance_tokens": ["however", "unexpectedly", "frankly", "messy"]
+            "method": "Burstiness & Type-Token Ratio",
+            "layer_targeted": "N/A",
+            "heatmap_resolution": "N/A",
+            "salient_features": [
+                "Sentence Length Variance",
+                "Vocabulary Repetition"
+            ]
         }

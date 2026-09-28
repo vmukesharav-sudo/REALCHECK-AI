@@ -66,10 +66,10 @@ export const WhyThisResultModal: React.FC<WhyThisResultModalProps> = ({
               <HelpCircle size={18} color="#00f0ff" />
             </div>
             <div>
-              <div style={{ fontSize: '18px', fontWeight: 800, color: '#f8fafc', letterSpacing: '0.5px' }}>
+              <div style={{ fontSize: '18px', fontWeight: 800, color: 'var(--text-main)', letterSpacing: '0.5px' }}>
                 Why Did REALCHECK AI Reach This Assessment?
               </div>
-              <div style={{ fontSize: '11px', color: '#94a3b8' }}>
+              <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
                 EXPLAINABLE AI EVIDENCE TRAIL &bull; CASE {result.case_id}
               </div>
             </div>
@@ -77,7 +77,7 @@ export const WhyThisResultModal: React.FC<WhyThisResultModalProps> = ({
 
           <button
             onClick={onClose}
-            style={{ background: 'transparent', border: 'none', color: '#94a3b8', cursor: 'pointer' }}
+            style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}
           >
             <X size={20} />
           </button>
@@ -97,25 +97,25 @@ export const WhyThisResultModal: React.FC<WhyThisResultModalProps> = ({
           }}
         >
           <div>
-            <div style={{ fontSize: '11px', textTransform: 'uppercase', color: '#94a3b8', letterSpacing: '1px' }}>
+            <div style={{ fontSize: '11px', textTransform: 'uppercase', color: 'var(--text-muted)', letterSpacing: '1px' }}>
               Final Authenticity Determination
             </div>
-            <div style={{ fontSize: '20px', fontWeight: 800, color: result.authenticity_score <= 30 ? '#ef4444' : (result.authenticity_score <= 60 ? '#f59e0b' : '#10b981'), marginTop: '2px' }}>
+            <div style={{ fontSize: '20px', fontWeight: 800, color: result.authenticity_score <= 30 ? 'var(--risk-high)' : (result.authenticity_score <= 60 ? 'var(--risk-medium)' : 'var(--risk-low)'), marginTop: '2px' }}>
               {result.assessment}
             </div>
           </div>
 
           <div style={{ textAlign: 'right' }}>
-            <div style={{ fontSize: '24px', fontWeight: 800, fontFamily: 'var(--font-mono)', color: '#00f0ff' }}>
-              {result.authenticity_score} <span style={{ fontSize: '14px', color: '#64748b' }}>/ 100</span>
+            <div style={{ fontSize: '24px', fontWeight: 800, fontFamily: 'var(--font-mono)', color: 'var(--cyan-primary)' }}>
+              {result.authenticity_score} <span style={{ fontSize: '14px', color: 'var(--text-dim)' }}>/ 100</span>
             </div>
-            <div style={{ fontSize: '11px', color: '#94a3b8' }}>Confidence: {Math.round(result.confidence_score * 100)}%</div>
+            <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Confidence: {Math.round(result.confidence_score * 100)}%</div>
           </div>
         </div>
 
         {/* Section 1: Top Contributing Signals */}
         <div style={{ marginBottom: '24px' }}>
-          <div style={{ fontSize: '13px', fontWeight: 700, color: '#38bdf8', letterSpacing: '0.8px', textTransform: 'uppercase', marginBottom: '12px' }}>
+          <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--blue-soft)', letterSpacing: '0.8px', textTransform: 'uppercase', marginBottom: '12px' }}>
             Top Contributing Forensic Signals
           </div>
 
@@ -134,7 +134,7 @@ export const WhyThisResultModal: React.FC<WhyThisResultModalProps> = ({
                 }}
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: '#00f0ff', fontWeight: 700 }}>
+                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: 'var(--cyan-primary)', fontWeight: 700 }}>
                     #{idx + 1}
                   </span>
                   <span style={{ fontSize: '13px', fontWeight: 600, color: '#e2e8f0' }}>
@@ -154,7 +154,7 @@ export const WhyThisResultModal: React.FC<WhyThisResultModalProps> = ({
                   >
                     {sig.impact} Impact
                   </span>
-                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: '12px', color: '#94a3b8', minWidth: '40px', textAlign: 'right' }}>
+                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: '12px', color: 'var(--text-muted)', minWidth: '40px', textAlign: 'right' }}>
                     {sig.weight}
                   </span>
                 </div>
@@ -165,7 +165,7 @@ export const WhyThisResultModal: React.FC<WhyThisResultModalProps> = ({
 
         {/* Section 2: Human-Language Interpretation */}
         <div style={{ marginBottom: '24px' }}>
-          <div style={{ fontSize: '13px', fontWeight: 700, color: '#38bdf8', letterSpacing: '0.8px', textTransform: 'uppercase', marginBottom: '10px' }}>
+          <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--blue-soft)', letterSpacing: '0.8px', textTransform: 'uppercase', marginBottom: '10px' }}>
             Plain-English Forensic Interpretation
           </div>
           <div
@@ -176,7 +176,7 @@ export const WhyThisResultModal: React.FC<WhyThisResultModalProps> = ({
               borderRadius: '0 6px 6px 0',
               fontSize: '13px',
               lineHeight: 1.6,
-              color: '#cbd5e1'
+              color: 'var(--risk-uncertain-text)'
             }}
           >
             {result.why_result_explanation}

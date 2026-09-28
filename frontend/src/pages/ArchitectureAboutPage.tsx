@@ -43,16 +43,16 @@ export const ArchitectureAboutPage: React.FC<ArchitectureAboutPageProps> = ({ on
       {/* Header */}
       <div style={{ marginBottom: '32px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <span style={{ fontSize: '11px', color: '#00f0ff', letterSpacing: '1px', textTransform: 'uppercase', fontWeight: 700 }}>
+          <span style={{ fontSize: '11px', color: 'var(--cyan-primary)', letterSpacing: '1px', textTransform: 'uppercase', fontWeight: 700 }}>
             PLATFORM MISSION & ARCHITECTURE
           </span>
-          <span style={{ fontSize: '11px', color: '#64748b' }}>&bull;</span>
-          <span style={{ fontSize: '11px', color: '#94a3b8' }}>SYSTEM DESIGN SPECIFICATION</span>
+          <span style={{ fontSize: '11px', color: 'var(--text-dim)' }}>&bull;</span>
+          <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>SYSTEM DESIGN SPECIFICATION</span>
         </div>
-        <h1 style={{ fontSize: '32px', fontWeight: 800, color: '#f8fafc', letterSpacing: '0.5px', marginTop: '2px' }}>
+        <h1 style={{ fontSize: '32px', fontWeight: 800, color: 'var(--text-main)', letterSpacing: '0.5px', marginTop: '2px' }}>
           REALCHECK AI: THE FORENSIC PARADIGM
         </h1>
-        <p style={{ fontSize: '15px', color: '#94a3b8', marginTop: '6px', maxWidth: '850px', lineHeight: 1.6 }}>
+        <p style={{ fontSize: '15px', color: 'var(--text-muted)', marginTop: '6px', maxWidth: '850px', lineHeight: 1.6 }}>
           “Don’t just detect. Investigate, explain, and verify.” The internet has transitioned from an era of verifiable physical media into an era of synthetic plausibility. REALCHECK AI replaces naive black-box classification with explainable forensic evidence trails.
         </p>
       </div>
@@ -60,19 +60,19 @@ export const ArchitectureAboutPage: React.FC<ArchitectureAboutPageProps> = ({ on
       {/* Problem & Solution Grid */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '20px', marginBottom: '36px' }}>
         <div className="glass-panel forensic-corner" style={{ padding: '24px', borderLeft: '4px solid #ef4444' }}>
-          <h2 style={{ fontSize: '18px', fontWeight: 800, color: '#f87171', marginBottom: '10px' }}>
+          <h2 style={{ fontSize: '18px', fontWeight: 800, color: 'var(--risk-high)', marginBottom: '10px' }}>
             THE CRITICAL PROBLEM
           </h2>
-          <p style={{ fontSize: '13px', color: '#cbd5e1', lineHeight: 1.6 }}>
+          <p style={{ fontSize: '13px', color: 'var(--risk-uncertain-text)', lineHeight: 1.6 }}>
             Modern diffusion algorithms, neural voice cloners, and real-time deepfake lip-sync generators can effortlessly fool the human eye and ear. Existing commercial detectors merely display a binary “REAL” or “FAKE” label with zero explainability, causing catastrophic false accusations or blind trust.
           </p>
         </div>
 
         <div className="glass-panel forensic-corner" style={{ padding: '24px', borderLeft: '4px solid #00f0ff' }}>
-          <h2 style={{ fontSize: '18px', fontWeight: 800, color: '#00f0ff', marginBottom: '10px' }}>
+          <h2 style={{ fontSize: '18px', fontWeight: 800, color: 'var(--cyan-primary)', marginBottom: '10px' }}>
             THE REALCHECK AI SOLUTION
           </h2>
-          <p style={{ fontSize: '13px', color: '#cbd5e1', lineHeight: 1.6 }}>
+          <p style={{ fontSize: '13px', color: 'var(--risk-uncertain-text)', lineHeight: 1.6 }}>
             REALCHECK AI establishes a unified 4-media architecture (Image, Video, Audio, Text). Every assessment is probabilistic, localized to exact timestamps or spatial coordinates, decomposed into distinct forensic signals (PRNU noise, Fourier FFT, viseme alignment, burstiness), and synthesized into an auditable evidence report.
           </p>
         </div>
@@ -80,7 +80,7 @@ export const ArchitectureAboutPage: React.FC<ArchitectureAboutPageProps> = ({ on
 
       {/* Architecture Visual Diagram */}
       <section className="glass-panel" style={{ padding: '28px', marginBottom: '40px' }}>
-        <h2 style={{ fontSize: '18px', fontWeight: 800, color: '#f8fafc', letterSpacing: '0.5px', marginBottom: '16px' }}>
+        <h2 style={{ fontSize: '18px', fontWeight: 800, color: 'var(--text-main)', letterSpacing: '0.5px', marginBottom: '16px' }}>
           CORE FORENSIC ARCHITECTURE SPECIFICATION
         </h2>
 
@@ -93,7 +93,7 @@ export const ArchitectureAboutPage: React.FC<ArchitectureAboutPageProps> = ({ on
             fontFamily: 'var(--font-mono)',
             fontSize: '12px',
             lineHeight: 1.6,
-            color: '#38bdf8',
+            color: 'var(--blue-soft)',
             overflowX: 'auto'
           }}
         >
@@ -135,7 +135,7 @@ CALIBRATED SCORE     RISK CLASSIFICATION     EXPLAINABILITY      LIMITATIONS NOT
       <section style={{ marginBottom: '40px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
           <Milestone size={20} color="#00f0ff" />
-          <h2 style={{ fontSize: '18px', fontWeight: 800, color: '#f8fafc', letterSpacing: '0.5px' }}>
+          <h2 style={{ fontSize: '18px', fontWeight: 800, color: 'var(--text-main)', letterSpacing: '0.5px' }}>
             8-PHASE SYSTEM ROADMAP
           </h2>
         </div>
@@ -157,17 +157,17 @@ CALIBRATED SCORE     RISK CLASSIFICATION     EXPLAINABILITY      LIMITATIONS NOT
               }}
             >
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
-                <span style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: '#00f0ff', fontWeight: 700 }}>
+                <span style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: 'var(--cyan-primary)', fontWeight: 700 }}>
                   {r.phase}
                 </span>
                 <span className={r.status.includes('Completed') || r.status.includes('Active') ? 'badge-risk-low' : 'badge-risk-medium'}>
                   {r.status}
                 </span>
               </div>
-              <div style={{ fontSize: '14px', fontWeight: 700, color: '#f8fafc', marginBottom: '4px' }}>
+              <div style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-main)', marginBottom: '4px' }}>
                 {r.title}
               </div>
-              <div style={{ fontSize: '12px', color: '#94a3b8', lineHeight: 1.5 }}>
+              <div style={{ fontSize: '12px', color: 'var(--text-muted)', lineHeight: 1.5 }}>
                 {r.desc}
               </div>
             </div>
@@ -177,7 +177,7 @@ CALIBRATED SCORE     RISK CLASSIFICATION     EXPLAINABILITY      LIMITATIONS NOT
 
       {/* Real-World Use Cases */}
       <section style={{ marginBottom: '40px' }}>
-        <h2 style={{ fontSize: '18px', fontWeight: 800, color: '#f8fafc', letterSpacing: '0.5px', marginBottom: '16px' }}>
+        <h2 style={{ fontSize: '18px', fontWeight: 800, color: 'var(--text-main)', letterSpacing: '0.5px', marginBottom: '16px' }}>
           REAL-WORLD ENTERPRISE & SOCIETAL USE CASES
         </h2>
         <div
@@ -194,10 +194,10 @@ CALIBRATED SCORE     RISK CLASSIFICATION     EXPLAINABILITY      LIMITATIONS NOT
                 <div style={{ width: '32px', height: '32px', borderRadius: '6px', background: 'rgba(0, 240, 255, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '12px' }}>
                   <Icon size={18} color="#00f0ff" />
                 </div>
-                <div style={{ fontSize: '14px', fontWeight: 700, color: '#f8fafc', marginBottom: '6px' }}>
+                <div style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-main)', marginBottom: '6px' }}>
                   {uc.title}
                 </div>
-                <div style={{ fontSize: '12px', color: '#94a3b8', lineHeight: 1.5 }}>
+                <div style={{ fontSize: '12px', color: 'var(--text-muted)', lineHeight: 1.5 }}>
                   {uc.desc}
                 </div>
               </div>
@@ -214,11 +214,11 @@ CALIBRATED SCORE     RISK CLASSIFICATION     EXPLAINABILITY      LIMITATIONS NOT
           borderRadius: '8px',
           padding: '24px',
           fontSize: '12px',
-          color: '#cbd5e1',
+          color: 'var(--risk-uncertain-text)',
           lineHeight: 1.7
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#00f0ff', fontSize: '14px', fontWeight: 700, marginBottom: '8px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--cyan-primary)', fontSize: '14px', fontWeight: 700, marginBottom: '8px' }}>
           <ShieldCheck size={18} />
           <span>OUR ETHICAL STANDARD: PROBABILISTIC FORENSICS OVER DOGMA</span>
         </div>

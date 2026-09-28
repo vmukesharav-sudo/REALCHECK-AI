@@ -34,12 +34,12 @@ export const CentralizedAiHubPage: React.FC<CentralizedAiHubPageProps> = ({ onNa
   });
 
   const engineStatuses = [
-    { name: 'Image Engine (ViT + Spectral ResNet)', status: 'Online / Ready', latency: '142ms', color: '#00f0ff' },
-    { name: 'Video Engine (Spatial-Temporal 3D-CNN)', status: 'Online / Ready', latency: '420ms', color: '#38bdf8' },
-    { name: 'Audio Engine (Spectrogram Classifier)', status: 'Online / Ready', latency: '88ms', color: '#06b6d4' },
+    { name: 'Image Engine (ViT + Spectral ResNet)', status: 'Online / Ready', latency: '142ms', color: 'var(--cyan-primary)' },
+    { name: 'Video Engine (Spatial-Temporal 3D-CNN)', status: 'Online / Ready', latency: '420ms', color: 'var(--blue-soft)' },
+    { name: 'Audio Engine (Spectrogram Classifier)', status: 'Online / Ready', latency: '88ms', color: 'var(--cyan-muted)' },
     { name: 'NLP Stylometry Engine (Transformer)', status: 'Online / Ready', latency: '45ms', color: '#818cf8' },
-    { name: 'Evidence Fusion Hub', status: 'Online / Active', latency: '12ms', color: '#10b981' },
-    { name: 'Explainability & Attribution Engine', status: 'Online / Active', latency: '35ms', color: '#f59e0b' },
+    { name: 'Evidence Fusion Hub', status: 'Online / Active', latency: '12ms', color: 'var(--risk-low)' },
+    { name: 'Explainability & Attribution Engine', status: 'Online / Active', latency: '35ms', color: 'var(--risk-medium)' },
   ];
 
   const evidenceNodes = [
@@ -98,16 +98,16 @@ export const CentralizedAiHubPage: React.FC<CentralizedAiHubPageProps> = ({ onNa
       {/* Header Bar */}
       <div style={{ marginBottom: '28px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <span style={{ fontSize: '11px', color: '#00f0ff', letterSpacing: '1px', textTransform: 'uppercase', fontWeight: 700 }}>
+          <span style={{ fontSize: '11px', color: 'var(--cyan-primary)', letterSpacing: '1px', textTransform: 'uppercase', fontWeight: 700 }}>
             CENTRALIZED EXPLAINABLE AI ARCHITECTURE
           </span>
-          <span style={{ fontSize: '11px', color: '#64748b' }}>&bull;</span>
-          <span style={{ fontSize: '11px', color: '#94a3b8' }}>TRANSPARENT REASONING ENGINE</span>
+          <span style={{ fontSize: '11px', color: 'var(--text-dim)' }}>&bull;</span>
+          <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>TRANSPARENT REASONING ENGINE</span>
         </div>
-        <h1 style={{ fontSize: '28px', fontWeight: 800, color: '#f8fafc', letterSpacing: '0.5px', marginTop: '2px' }}>
+        <h1 style={{ fontSize: '28px', fontWeight: 800, color: 'var(--text-main)', letterSpacing: '0.5px', marginTop: '2px' }}>
           CENTRALIZED EXPLAINABLE AI & EVIDENCE FUSION HUB
         </h1>
-        <p style={{ fontSize: '14px', color: '#94a3b8', marginTop: '4px' }}>
+        <p style={{ fontSize: '14px', color: 'var(--text-muted)', marginTop: '4px' }}>
           Visualizing how four independent forensic engines funnel evidence into the central Explainable AI Hub, culminating in unified probabilistic verification.
         </p>
       </div>
@@ -130,15 +130,15 @@ export const CentralizedAiHubPage: React.FC<CentralizedAiHubPageProps> = ({ onNa
               borderLeft: `3px solid ${eng.color}`
             }}
           >
-            <div style={{ fontSize: '11px', fontWeight: 700, color: '#f8fafc' }}>
+            <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-main)' }}>
               {eng.name}
             </div>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '4px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '10px', color: '#34d399' }}>
-                <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#10b981' }} />
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '10px', color: 'var(--risk-low)' }}>
+                <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: 'var(--risk-low)' }} />
                 <span>{eng.status}</span>
               </div>
-              <span style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', color: '#64748b' }}>
+              <span style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', color: 'var(--text-dim)' }}>
                 {eng.latency}
               </span>
             </div>
@@ -150,7 +150,7 @@ export const CentralizedAiHubPage: React.FC<CentralizedAiHubPageProps> = ({ onNa
       <div style={{ display: 'grid', gridTemplateColumns: 'minmax(320px, 1.2fr) minmax(320px, 1fr)', gap: '24px', marginBottom: '32px' }}>
         {/* Left: Architecture Pipeline Tree */}
         <div className="glass-panel forensic-corner" style={{ padding: '24px' }}>
-          <div style={{ fontSize: '14px', fontWeight: 800, color: '#00f0ff', letterSpacing: '0.5px', marginBottom: '18px' }}>
+          <div style={{ fontSize: '14px', fontWeight: 800, color: 'var(--cyan-primary)', letterSpacing: '0.5px', marginBottom: '18px' }}>
             VERTICAL EVIDENCE CONVERGENCE PIPELINE
           </div>
 
@@ -158,9 +158,9 @@ export const CentralizedAiHubPage: React.FC<CentralizedAiHubPageProps> = ({ onNa
             {/* 4 Media Engines Row */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px', width: '100%' }}>
               {[
-                { name: 'IMAGE ENGINE', sub: 'Fourier & PRNU', color: '#00f0ff', tab: 'image' },
-                { name: 'VIDEO ENGINE', sub: 'Temporal & Viseme', color: '#38bdf8', tab: 'video' },
-                { name: 'AUDIO ENGINE', sub: 'Spectrogram & Vocoder', color: '#06b6d4', tab: 'audio' },
+                { name: 'IMAGE ENGINE', sub: 'Fourier & PRNU', color: 'var(--cyan-primary)', tab: 'image' },
+                { name: 'VIDEO ENGINE', sub: 'Temporal & Viseme', color: 'var(--blue-soft)', tab: 'video' },
+                { name: 'AUDIO ENGINE', sub: 'Spectrogram & Vocoder', color: 'var(--cyan-muted)', tab: 'audio' },
                 { name: 'TEXT ENGINE', sub: 'Burstiness & Entropy', color: '#818cf8', tab: 'text' },
               ].map((item, idx) => (
                 <div
@@ -176,7 +176,7 @@ export const CentralizedAiHubPage: React.FC<CentralizedAiHubPageProps> = ({ onNa
                   }}
                 >
                   <div style={{ fontSize: '11px', fontWeight: 700, color: item.color }}>{item.name}</div>
-                  <div style={{ fontSize: '9px', color: '#94a3b8', marginTop: '2px' }}>{item.sub}</div>
+                  <div style={{ fontSize: '9px', color: 'var(--text-muted)', marginTop: '2px' }}>{item.sub}</div>
                 </div>
               ))}
             </div>
@@ -195,7 +195,7 @@ export const CentralizedAiHubPage: React.FC<CentralizedAiHubPageProps> = ({ onNa
                 borderRadius: '6px',
                 fontSize: '12px',
                 fontWeight: 700,
-                color: '#cbd5e1'
+                color: 'var(--risk-uncertain-text)'
               }}
             >
               EVIDENCE EXTRACTION &amp; CALIBRATION WEIGHTING
@@ -211,17 +211,17 @@ export const CentralizedAiHubPage: React.FC<CentralizedAiHubPageProps> = ({ onNa
                 padding: '14px',
                 textAlign: 'center',
                 backgroundColor: '#0c162d',
-                borderColor: '#00f0ff',
+                borderColor: 'var(--cyan-primary)',
                 boxShadow: '0 0 20px rgba(0, 240, 255, 0.2)'
               }}
             >
-              <div style={{ fontSize: '11px', color: '#00f0ff', textTransform: 'uppercase', letterSpacing: '1px', fontWeight: 700 }}>
+              <div style={{ fontSize: '11px', color: 'var(--cyan-primary)', textTransform: 'uppercase', letterSpacing: '1px', fontWeight: 700 }}>
                 CORE INTELLIGENCE LAYER
               </div>
-              <div style={{ fontSize: '15px', fontWeight: 800, color: '#f8fafc', marginTop: '2px' }}>
+              <div style={{ fontSize: '15px', fontWeight: 800, color: 'var(--text-main)', marginTop: '2px' }}>
                 CENTRALIZED EXPLAINABLE AI HUB
               </div>
-              <div style={{ fontSize: '11px', color: '#94a3b8', marginTop: '2px' }}>
+              <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '2px' }}>
                 Cross-Modal Attention &bull; Saliency Attributions &bull; Conflict Resolver
               </div>
             </div>
@@ -239,7 +239,7 @@ export const CentralizedAiHubPage: React.FC<CentralizedAiHubPageProps> = ({ onNa
                 borderRadius: '6px',
                 fontSize: '12px',
                 fontWeight: 700,
-                color: '#cbd5e1'
+                color: 'var(--risk-uncertain-text)'
               }}
             >
               AUTHENTICITY ENGINE (PROBABILISTIC SCORING 0-100)
@@ -258,7 +258,7 @@ export const CentralizedAiHubPage: React.FC<CentralizedAiHubPageProps> = ({ onNa
                 borderRadius: '6px',
                 fontSize: '12px',
                 fontWeight: 700,
-                color: '#34d399'
+                color: 'var(--risk-low)'
               }}
             >
               CRYPTOGRAPHIC FORENSIC REPORT &amp; EXPORT
@@ -268,10 +268,10 @@ export const CentralizedAiHubPage: React.FC<CentralizedAiHubPageProps> = ({ onNa
 
         {/* Right: Interactive Evidence Node Inspector */}
         <div className="glass-panel" style={{ padding: '24px' }}>
-          <div style={{ fontSize: '14px', fontWeight: 800, color: '#38bdf8', letterSpacing: '0.5px', marginBottom: '8px' }}>
+          <div style={{ fontSize: '14px', fontWeight: 800, color: 'var(--blue-soft)', letterSpacing: '0.5px', marginBottom: '8px' }}>
             INTERACTIVE EVIDENCE ATTRIBUTION GRAPH
           </div>
-          <p style={{ fontSize: '12px', color: '#94a3b8', marginBottom: '16px' }}>
+          <p style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '16px' }}>
             Click an evidence node to evaluate how individual forensic signals contribute to the final probability assessment:
           </p>
 
@@ -294,19 +294,19 @@ export const CentralizedAiHubPage: React.FC<CentralizedAiHubPageProps> = ({ onNa
                   }}
                 >
                   <div>
-                    <div style={{ fontSize: '12px', fontWeight: 700, color: isSelected ? '#00f0ff' : '#f8fafc' }}>
+                    <div style={{ fontSize: '12px', fontWeight: 700, color: isSelected ? 'var(--cyan-primary)' : 'var(--text-main)' }}>
                       {node.name}
                     </div>
-                    <div style={{ fontSize: '10px', color: '#94a3b8' }}>
+                    <div style={{ fontSize: '10px', color: 'var(--text-muted)' }}>
                       Category: {node.category}
                     </div>
                   </div>
 
                   <div style={{ textAlign: 'right' }}>
-                    <div style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: '#f87171', fontWeight: 700 }}>
+                    <div style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: 'var(--risk-high)', fontWeight: 700 }}>
                       {node.strength}
                     </div>
-                    <div style={{ fontSize: '10px', color: '#64748b' }}>Weight: {node.contribution}</div>
+                    <div style={{ fontSize: '10px', color: 'var(--text-dim)' }}>Weight: {node.contribution}</div>
                   </div>
                 </div>
               );
@@ -323,16 +323,16 @@ export const CentralizedAiHubPage: React.FC<CentralizedAiHubPageProps> = ({ onNa
               fontSize: '12px'
             }}
           >
-            <div style={{ fontSize: '11px', textTransform: 'uppercase', color: '#00f0ff', fontWeight: 700, marginBottom: '2px' }}>
+            <div style={{ fontSize: '11px', textTransform: 'uppercase', color: 'var(--cyan-primary)', fontWeight: 700, marginBottom: '2px' }}>
               Why This Signal Matters
             </div>
-            <div style={{ color: '#f8fafc', fontWeight: 700, marginBottom: '4px' }}>
+            <div style={{ color: 'var(--text-main)', fontWeight: 700, marginBottom: '4px' }}>
               {selectedNode.name}
             </div>
-            <div style={{ color: '#cbd5e1', lineHeight: 1.5, marginBottom: '8px' }}>
+            <div style={{ color: 'var(--risk-uncertain-text)', lineHeight: 1.5, marginBottom: '8px' }}>
               {selectedNode.whyMatters}
             </div>
-            <div style={{ fontSize: '11px', color: '#94a3b8' }}>
+            <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
               <strong>Affected Region / Slice:</strong> {selectedNode.affected}
             </div>
           </div>

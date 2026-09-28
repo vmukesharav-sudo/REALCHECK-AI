@@ -12,7 +12,7 @@ export const EvidenceCardComponent: React.FC<EvidenceCardComponentProps> = ({ ca
   const isMediumRisk = card.risk === 'Medium Risk' || (card.score > 40 && card.score <= 70);
   const isLowRisk = card.risk === 'Low Risk' || card.score <= 40;
 
-  const barColor = isHighRisk ? '#ef4444' : (isMediumRisk ? '#f59e0b' : (card.risk === 'Uncertain' ? '#94a3b8' : '#10b981'));
+  const barColor = isHighRisk ? 'var(--risk-high)' : (isMediumRisk ? 'var(--risk-medium)' : (card.risk === 'Uncertain' ? 'var(--text-muted)' : 'var(--risk-low)'));
   const badgeClass = isHighRisk ? 'badge-risk-high' : (isMediumRisk ? 'badge-risk-medium' : (card.risk === 'Uncertain' ? 'badge-risk-uncertain' : 'badge-risk-low'));
 
   return (
@@ -30,7 +30,7 @@ export const EvidenceCardComponent: React.FC<EvidenceCardComponentProps> = ({ ca
     >
       <div>
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '8px', marginBottom: '8px' }}>
-          <div style={{ fontSize: '14px', fontWeight: 700, color: '#f8fafc', letterSpacing: '0.3px' }}>
+          <div style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-main)', letterSpacing: '0.3px' }}>
             {card.title}
           </div>
           <span className={badgeClass}>
@@ -38,7 +38,7 @@ export const EvidenceCardComponent: React.FC<EvidenceCardComponentProps> = ({ ca
           </span>
         </div>
 
-        <p style={{ fontSize: '12px', color: '#94a3b8', lineHeight: 1.5, marginBottom: '14px' }}>
+        <p style={{ fontSize: '12px', color: 'var(--text-muted)', lineHeight: 1.5, marginBottom: '14px' }}>
           {card.explanation}
         </p>
       </div>
@@ -46,7 +46,7 @@ export const EvidenceCardComponent: React.FC<EvidenceCardComponentProps> = ({ ca
       <div>
         {/* Score indicator */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
-          <span style={{ fontSize: '10px', textTransform: 'uppercase', color: '#64748b', letterSpacing: '0.5px' }}>
+          <span style={{ fontSize: '10px', textTransform: 'uppercase', color: 'var(--text-dim)', letterSpacing: '0.5px' }}>
             Anomaly Indicator
           </span>
           <span style={{ fontFamily: 'var(--font-mono)', fontSize: '12px', fontWeight: 700, color: barColor }}>

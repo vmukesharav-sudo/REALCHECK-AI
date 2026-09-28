@@ -1,6 +1,7 @@
+import { forensicApi } from '../services/api';
+import { InvestigationResult } from '../types/forensics';
 import React, { useState, useEffect } from 'react';
 import { Search, X, ArrowRight, ShieldAlert, FileText, Image, Video, Mic, Sparkles } from 'lucide-react';
-import { SAMPLE_CASES } from '../data/sampleCases';
 
 interface CommandPaletteProps {
   isOpen: boolean;
@@ -42,7 +43,14 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
     { label: 'View Centralized Explainable AI Hub', icon: Sparkles, action: () => { onNavigate('ai-hub'); onClose(); } },
   ];
 
-  const filteredCases = Object.values(SAMPLE_CASES).filter(c => 
+  const [allCases, setAllCases] = React.useState<InvestigationResult[]>([]);
+  React.useEffect(() => {
+    if (isOpen) {
+      forensicApi.getInvestigations().then(setAllCases).catch(console.error);
+    }
+  }, [isOpen]);
+
+  const filteredCases = allCases.filter(c => 
     c.case_id.toLowerCase().includes(query.toLowerCase()) ||
     c.file_name.toLowerCase().includes(query.toLowerCase()) ||
     c.assessment.toLowerCase().includes(query.toLowerCase()) ||
@@ -101,14 +109,14 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
               background: 'transparent',
               border: 'none',
               outline: 'none',
-              color: '#f8fafc',
+              color: 'var(--text-main)',
               fontSize: '15px',
               fontFamily: 'var(--font-sans)'
             }}
           />
           <button
             onClick={onClose}
-            style={{ background: 'transparent', border: 'none', color: '#64748b', cursor: 'pointer' }}
+            style={{ background: 'transparent', border: 'none', color: 'var(--text-dim)', cursor: 'pointer' }}
           >
             <X size={18} />
           </button>
@@ -118,7 +126,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
         <div style={{ maxHeight: '420px', overflowY: 'auto', padding: '12px 16px' }}>
           {query.trim() === '' ? (
             <div>
-              <div style={{ fontSize: '11px', color: '#64748b', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '8px', paddingLeft: '4px' }}>
+              <div style={{ fontSize: '11px', color: 'var(--text-dim)', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '8px', paddingLeft: '4px' }}>
                 Suggested Forensic Actions
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
@@ -153,11 +161,11 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
             </div>
           ) : (
             <div>
-              <div style={{ fontSize: '11px', color: '#64748b', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '8px', paddingLeft: '4px' }}>
+              <div style={{ fontSize: '11px', color: 'var(--text-dim)', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '8px', paddingLeft: '4px' }}>
                 Matching Investigations ({filteredCases.length})
               </div>
               {filteredCases.length === 0 ? (
-                <div style={{ padding: '24px', textAlign: 'center', color: '#64748b', fontSize: '13px' }}>
+                <div style={{ padding: '24px', textAlign: 'center', color: 'var(--text-dim)', fontSize: '13px' }}>
                   No matching forensic records found for "{query}".
                 </div>
               ) : (
@@ -185,10 +193,10 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
                     >
                       <div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                          <span style={{ fontFamily: 'var(--font-mono)', fontSize: '12px', color: '#00f0ff' }}>
+                          <span style={{ fontFamily: 'var(--font-mono)', fontSize: '12px', color: 'var(--cyan-primary)' }}>
                             {c.case_id}
                           </span>
-                          <span style={{ fontSize: '11px', color: '#94a3b8' }}>&bull; {c.media_type}</span>
+                          <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>&bull; {c.media_type}</span>
                           <span
                             className={
                               c.authenticity_score <= 30
@@ -201,16 +209,16 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
                             {c.assessment}
                           </span>
                         </div>
-                        <div style={{ fontSize: '12px', color: '#cbd5e1', marginTop: '4px' }}>
+                        <div style={{ fontSize: '12px', color: 'var(--risk-uncertain-text)', marginTop: '4px' }}>
                           {c.file_name}
                         </div>
                       </div>
 
                       <div style={{ textAlign: 'right' }}>
-                        <div style={{ fontFamily: 'var(--font-mono)', fontWeight: 700, fontSize: '14px', color: '#f8fafc' }}>
+                        <div style={{ fontFamily: 'var(--font-mono)', fontWeight: 700, fontSize: '14px', color: 'var(--text-main)' }}>
                           {c.authenticity_score}/100
                         </div>
-                        <div style={{ fontSize: '10px', color: '#64748b' }}>Score</div>
+                        <div style={{ fontSize: '10px', color: 'var(--text-dim)' }}>Score</div>
                       </div>
                     </div>
                   ))}
@@ -230,7 +238,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
             justifyContent: 'space-between',
             alignItems: 'center',
             fontSize: '11px',
-            color: '#64748b'
+            color: 'var(--text-dim)'
           }}
         >
           <span>Use <strong>Esc</strong> to close</span>

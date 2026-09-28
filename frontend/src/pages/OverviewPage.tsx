@@ -1,24 +1,19 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
-  ShieldCheck, 
-  ArrowRight, 
-  Search, 
-  Sliders, 
-  AlertTriangle, 
-  Activity, 
+  Plus, 
   Image as ImageIcon, 
   Video as VideoIcon, 
   Mic, 
-  FileText, 
-  CheckCircle,
-  ExternalLink,
-  Layers,
-  Sparkles,
-  Zap
+  FileText,
+  Activity,
+  ArrowRight,
+  FolderKanban,
+  FileSpreadsheet,
+  AlertCircle
 } from 'lucide-react';
-import { AuthenticityCore } from '../components/AuthenticityCore';
-import { SAMPLE_CASES } from '../data/sampleCases';
+import { forensicApi } from '../services/api';
 import { InvestigationResult } from '../types/forensics';
+import { LoadingState, EmptyState } from '../components/AppStates';
 
 interface OverviewPageProps {
   onNavigate: (tab: string) => void;
@@ -26,372 +21,250 @@ interface OverviewPageProps {
 }
 
 export const OverviewPage: React.FC<OverviewPageProps> = ({ onNavigate, onSelectCase }) => {
-  const [selectedPipelineStage, setSelectedPipelineStage] = useState<number | null>(0);
+  const [recentCases, setRecentCases] = useState<InvestigationResult[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const pipelineStages = [
-    { name: 'DIGITAL CONTENT', desc: 'Raw ingestion of Image, Video, Audio, or Text documents.' },
-    { name: 'FILE VALIDATION', desc: 'MIME validation, hex magic byte verification & SHA-256 hashing.' },
-    { name: 'MEDIA CLASSIFICATION', desc: 'Routing stream to designated specialized forensic micro-service.' },
-    { name: 'SPECIALIZED ENGINE', desc: 'Spatial-temporal, Fourier frequency, or NLP tokenizer processing.' },
-    { name: 'FEATURE EXTRACTION', desc: 'Deriving PRNU noise residuals, biometrics, landmark optical flow.' },
-    { name: 'AI MODEL INFERENCE', desc: 'ViT, 3D-CNN, Wav2Vec2, and Transformer Stylometry neural networks.' },
-    { name: 'FORENSIC SIGNALS', desc: 'Individual probabilistic metrics scored with calibration weights.' },
-    { name: 'EVIDENCE FUSION', desc: 'Cross-evidence mathematical synthesis and conflict resolution.' },
-    { name: 'EXPLAINABLE AI', desc: 'Grad-CAM heatmaps, token saliency & temporal attribution paths.' },
-    { name: 'AUTHENTICITY ASSESSMENT', desc: 'Probabilistic determination (Likely Real / AI-Generated / Uncertain).' },
-    { name: 'FORENSIC REPORT', desc: 'Cryptographically timestamped PDF docket, JSON, and CSV export.' }
-  ];
+  useEffect(() => {
+    let isMounted = true;
+    forensicApi.getInvestigations().then(data => {
+      if (isMounted) {
+        setRecentCases(data || []);
+        setIsLoading(false);
+      }
+    }).catch(() => {
+      if (isMounted) {
+        setRecentCases([]);
+        setIsLoading(false);
+      }
+    });
+    return () => { isMounted = false; };
+  }, []);
 
-  const recentCases = Object.values(SAMPLE_CASES);
+  // Compute metrics if data is available
+  const totalCases = recentCases.length;
+  const completedCases = recentCases.length; // Assuming all returned are completed for now
+  const reviewRequired = recentCases.filter(c => c.authenticity_score <= 30).length;
 
   return (
-    <div style={{ maxWidth: '1440px', margin: '0 auto', padding: '24px 20px 80px' }}>
-      {/* 1. HERO SECTION */}
-      <section style={{ textAlign: 'center', padding: '40px 16px 30px', position: 'relative' }}>
-        <div
-          style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: '8px',
-            background: 'rgba(0, 240, 255, 0.08)',
-            border: '1px solid rgba(0, 240, 255, 0.3)',
-            borderRadius: '20px',
-            padding: '4px 14px',
-            fontSize: '11px',
-            fontWeight: 700,
-            letterSpacing: '1px',
-            color: '#00f0ff',
-            textTransform: 'uppercase',
-            marginBottom: '16px'
-          }}
-        >
-          <Sparkles size={12} />
-          One Platform &bull; Four Media Types &bull; Explainable Digital Authenticity
-        </div>
-
-        <h1
-          style={{
-            fontSize: '44px',
-            fontWeight: 800,
-            lineHeight: 1.15,
-            letterSpacing: '-0.5px',
-            color: '#f8fafc',
-            maxWidth: '900px',
-            margin: '0 auto 16px'
-          }}
-        >
-          Digital Content Can Look Real.{' '}
-          <span
-            style={{
-              background: 'linear-gradient(135deg, #00f0ff 0%, #38bdf8 50%, #818cf8 100%)',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent'
-            }}
-          >
-            Evidence Tells the Story.
-          </span>
-        </h1>
-
-        <p
-          style={{
-            fontSize: '16px',
-            lineHeight: 1.6,
-            color: '#94a3b8',
-            maxWidth: '780px',
-            margin: '0 auto 28px'
-          }}
-        >
-          REALCHECK AI investigates images, videos, audio and text using specialized AI and forensic analysis — then explains the evidence behind every authenticity assessment.
-        </p>
-
-        {/* Hero Action Buttons */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '14px', flexWrap: 'wrap' }}>
-          <button
-            onClick={() => onNavigate('image')}
-            className="btn-cyber-primary"
-            style={{ padding: '12px 24px', fontSize: '14px' }}
-          >
-            <span>START INVESTIGATION</span>
-            <ArrowRight size={16} />
-          </button>
-
-          <button
-            onClick={() => onNavigate('ai-hub')}
-            className="btn-cyber-secondary"
-            style={{ padding: '11px 22px', fontSize: '14px' }}
-          >
-            <Layers size={16} />
-            <span>EXPLORE FORENSICS</span>
-          </button>
-        </div>
-
-        {/* Hero Visual: Digital Evidence Core */}
-        <div style={{ marginTop: '24px' }}>
-          <AuthenticityCore onNavigateEngine={(engine) => onNavigate(engine)} />
-        </div>
-      </section>
-
-      {/* 2. OVERVIEW DASHBOARD METRICS */}
-      <section style={{ marginTop: '30px', marginBottom: '40px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
-          <div>
-            <h2 style={{ fontSize: '18px', fontWeight: 800, color: '#f8fafc', letterSpacing: '0.5px' }}>
-              INVESTIGATION PULSE & METRICS
-            </h2>
-            <p style={{ fontSize: '12px', color: '#94a3b8' }}>
-              Live telemetry aggregated across all four forensic inspection micro-engines
-            </p>
-          </div>
-          <div style={{ fontSize: '11px', color: '#38bdf8', fontFamily: 'var(--font-mono)' }}>
-            UPDATED: JUST NOW
-          </div>
-        </div>
-
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
-            gap: '14px'
-          }}
-        >
-          {[
-            { label: 'Total Investigations', value: '1,428', sub: '+38 today', color: '#00f0ff' },
-            { label: 'Images Analyzed', value: '612', sub: 'ViT + FFT', color: '#38bdf8' },
-            { label: 'Videos Analyzed', value: '340', sub: 'Spatial-Temporal', color: '#60a5fa' },
-            { label: 'Audio Analyzed', value: '284', sub: 'Spectrogram + Vocoder', color: '#06b6d4' },
-            { label: 'Texts Analyzed', value: '192', sub: 'Stylometric NLP', color: '#818cf8' },
-            { label: 'High-Risk Findings', value: '241', sub: 'Elevated anomalies', color: '#ef4444' },
-            { label: 'Uncertain Findings', value: '48', sub: 'Mixed signals', color: '#94a3b8' },
-          ].map((metric, idx) => (
-            <div
-              key={idx}
-              className="glass-panel"
-              style={{
-                padding: '16px',
-                borderLeft: `4px solid ${metric.color}`
-              }}
-            >
-              <div style={{ fontSize: '11px', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                {metric.label}
-              </div>
-              <div
-                style={{
-                  fontSize: '26px',
-                  fontWeight: 800,
-                  fontFamily: 'var(--font-mono)',
-                  color: '#f8fafc',
-                  margin: '4px 0 2px'
-                }}
-              >
-                {metric.value}
-              </div>
-              <div style={{ fontSize: '10px', color: metric.color, fontFamily: 'var(--font-mono)' }}>
-                {metric.sub}
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* 3. MAIN FORENSIC PIPELINE INTERACTIVE MAP */}
-      <section className="glass-panel forensic-corner" style={{ padding: '24px', marginBottom: '40px' }}>
-        <div style={{ marginBottom: '18px' }}>
-          <h2 style={{ fontSize: '18px', fontWeight: 800, color: '#f8fafc', letterSpacing: '0.5px' }}>
-            SPECIALIZED FORENSIC PIPELINE ARCHITECTURE
-          </h2>
-          <p style={{ fontSize: '12px', color: '#94a3b8' }}>
-            Click any processing stage to inspect the technical data contract and evidence extraction criteria
+    <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '32px 24px', width: '100%' }}>
+      
+      {/* 1. HEADER */}
+      <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'flex-start', justifyContent: 'space-between', gap: '16px', marginBottom: '40px' }}>
+        <div>
+          <h1 style={{ fontSize: '28px', fontWeight: 800, color: 'var(--text-main)', letterSpacing: '0.5px', marginBottom: '8px' }}>
+            Overview
+          </h1>
+          <p style={{ color: 'var(--text-muted)', fontSize: '15px' }}>
+            Your digital authenticity investigation workspace.
           </p>
         </div>
-
-        {/* Horizontal Pipeline Steps */}
-        <div
+        
+        <button
+          onClick={() => onNavigate('workspace')}
           style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px',
-            overflowX: 'auto',
-            paddingBottom: '12px'
+            display: 'flex', alignItems: 'center', gap: '8px',
+            background: 'var(--btn-primary-bg)', color: 'var(--btn-primary-text)',
+            border: 'none', borderRadius: '8px', padding: '10px 16px',
+            cursor: 'pointer', fontWeight: 600, fontSize: '14px', transition: 'all 0.2s',
+            boxShadow: '0 4px 14px rgba(0, 210, 255, 0.2)'
           }}
         >
-          {pipelineStages.map((stage, idx) => {
-            const isSelected = selectedPipelineStage === idx;
-            return (
-              <div
-                key={idx}
-                onClick={() => setSelectedPipelineStage(idx)}
-                style={{
-                  minWidth: '130px',
-                  padding: '10px 12px',
-                  borderRadius: '6px',
-                  background: isSelected ? 'rgba(0, 240, 255, 0.15)' : 'rgba(15, 23, 42, 0.6)',
-                  border: isSelected ? '1px solid #00f0ff' : '1px solid rgba(56, 189, 248, 0.15)',
-                  cursor: 'pointer',
-                  textAlign: 'center',
-                  transition: 'all 0.15s ease'
-                }}
-              >
-                <div style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', color: isSelected ? '#00f0ff' : '#64748b' }}>
-                  STEP {String(idx + 1).padStart(2, '0')}
-                </div>
-                <div style={{ fontSize: '11px', fontWeight: 700, color: isSelected ? '#f8fafc' : '#cbd5e1', marginTop: '2px' }}>
-                  {stage.name}
-                </div>
-              </div>
-            );
-          })}
-        </div>
+          <Plus size={18} />
+          New Investigation
+        </button>
+      </div>
 
-        {/* Selected Stage Detail Card */}
-        {selectedPipelineStage !== null && (
-          <div
-            style={{
-              marginTop: '16px',
-              padding: '16px 20px',
-              backgroundColor: 'rgba(15, 23, 42, 0.8)',
-              borderLeft: '4px solid #00f0ff',
-              borderRadius: '0 8px 8px 0',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              gap: '20px'
+      {/* 2. SUMMARY METRICS */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px', marginBottom: '40px' }}>
+        <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border-subtle)', borderRadius: '12px', padding: '20px' }}>
+          <div style={{ fontSize: '12px', color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase', marginBottom: '8px' }}>Total Cases</div>
+          <div style={{ fontSize: '32px', fontWeight: 800, color: 'var(--text-main)', fontFamily: 'var(--font-mono)' }}>
+            {isLoading ? '-' : totalCases}
+          </div>
+        </div>
+        <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border-subtle)', borderRadius: '12px', padding: '20px' }}>
+          <div style={{ fontSize: '12px', color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase', marginBottom: '8px' }}>Processing</div>
+          <div style={{ fontSize: '32px', fontWeight: 800, color: 'var(--text-main)', fontFamily: 'var(--font-mono)' }}>
+            {isLoading ? '-' : '0'}
+          </div>
+        </div>
+        <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border-subtle)', borderRadius: '12px', padding: '20px' }}>
+          <div style={{ fontSize: '12px', color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase', marginBottom: '8px' }}>Completed</div>
+          <div style={{ fontSize: '32px', fontWeight: 800, color: 'var(--text-main)', fontFamily: 'var(--font-mono)' }}>
+            {isLoading ? '-' : completedCases}
+          </div>
+        </div>
+        <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border-subtle)', borderRadius: '12px', padding: '20px' }}>
+          <div style={{ fontSize: '12px', color: 'var(--risk-high)', fontWeight: 600, textTransform: 'uppercase', marginBottom: '8px' }}>Review Required</div>
+          <div style={{ fontSize: '32px', fontWeight: 800, color: 'var(--text-main)', fontFamily: 'var(--font-mono)' }}>
+            {isLoading ? '-' : reviewRequired}
+          </div>
+        </div>
+      </div>
+
+      {/* 3. QUICK ANALYSIS CARDS */}
+      <h2 style={{ fontSize: '16px', fontWeight: 700, color: 'var(--text-main)', marginBottom: '16px', letterSpacing: '0.5px' }}>
+        Quick Analysis
+      </h2>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '16px', marginBottom: '40px' }}>
+        {[
+          { id: 'image', label: 'Image', desc: 'Detect visual manipulation and AI-generation indicators.', icon: ImageIcon, color: '#00f0ff' },
+          { id: 'video', label: 'Video', desc: 'Inspect temporal and deepfake-related evidence.', icon: VideoIcon, color: '#38bdf8' },
+          { id: 'audio', label: 'Audio', desc: 'Analyze acoustic and voice-cloning indicators.', icon: Mic, color: '#06b6d4' },
+          { id: 'text', label: 'Text', desc: 'Analyze linguistic/stylometric indicators.', icon: FileText, color: '#60a5fa' }
+        ].map(card => (
+          <div 
+            key={card.id}
+            onClick={() => onNavigate(card.id)}
+            style={{ 
+              background: 'var(--bg-card)', border: '1px solid var(--border-subtle)', 
+              borderRadius: '12px', padding: '20px', cursor: 'pointer', transition: 'all 0.2s ease',
+              display: 'flex', flexDirection: 'column', gap: '12px',
+              boxShadow: '0 4px 6px rgba(0,0,0,0.05)'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.borderColor = 'var(--cyan-primary)';
+              e.currentTarget.style.transform = 'translateY(-2px)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.borderColor = 'var(--border-subtle)';
+              e.currentTarget.style.transform = 'none';
             }}
           >
-            <div>
-              <div style={{ fontSize: '11px', color: '#00f0ff', letterSpacing: '1px', textTransform: 'uppercase', fontWeight: 700 }}>
-                STAGE {selectedPipelineStage + 1}: {pipelineStages[selectedPipelineStage].name}
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <card.icon size={20} color={card.color} />
+                <span style={{ fontWeight: 700, color: 'var(--text-main)', fontSize: '16px' }}>{card.label}</span>
               </div>
-              <div style={{ fontSize: '13px', color: '#e2e8f0', marginTop: '4px', lineHeight: 1.5 }}>
-                {pipelineStages[selectedPipelineStage].desc}
-              </div>
+              <ArrowRight size={16} color="var(--text-dim)" />
             </div>
-
-            <button
-              onClick={() => onNavigate('about')}
-              style={{
-                background: 'rgba(0, 240, 255, 0.1)',
-                border: '1px solid rgba(0, 240, 255, 0.3)',
-                color: '#00f0ff',
-                padding: '6px 14px',
-                borderRadius: '6px',
-                fontSize: '11px',
-                fontWeight: 600,
-                cursor: 'pointer',
-                whiteSpace: 'nowrap'
-              }}
-            >
-              Read Specification
-            </button>
-          </div>
-        )}
-      </section>
-
-      {/* 4. RECENT INVESTIGATIONS BENCHMARK TABLE */}
-      <section className="glass-panel" style={{ padding: '24px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '18px' }}>
-          <div>
-            <h2 style={{ fontSize: '18px', fontWeight: 800, color: '#f8fafc', letterSpacing: '0.5px' }}>
-              RECENT FORENSIC INVESTIGATIONS
-            </h2>
-            <p style={{ fontSize: '12px', color: '#94a3b8' }}>
-              Standardized probabilistic cases ready for immediate examination
+            <p style={{ color: 'var(--text-muted)', fontSize: '13px', lineHeight: 1.5 }}>
+              {card.desc}
             </p>
           </div>
+        ))}
+      </div>
 
-          <button
-            onClick={() => onNavigate('workspace')}
-            className="btn-cyber-secondary"
-            style={{ fontSize: '12px', padding: '6px 14px' }}
-          >
-            <span>Open Multi-Media Case Board</span>
-            <ArrowRight size={14} />
-          </button>
+      {/* 4. RECENT INVESTIGATIONS & ACTIVITY SPLIT */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '24px' }}>
+        
+        {/* RECENT INVESTIGATIONS */}
+        <div style={{ flex: 2, minWidth: '0' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
+            <h2 style={{ fontSize: '16px', fontWeight: 700, color: 'var(--text-main)', letterSpacing: '0.5px' }}>
+              Recent Investigations
+            </h2>
+            {recentCases.length > 0 && (
+              <button 
+                onClick={() => onNavigate('workspace')}
+                style={{ background: 'transparent', border: 'none', color: 'var(--cyan-primary)', fontSize: '13px', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}
+              >
+                View All <ArrowRight size={14} />
+              </button>
+            )}
+          </div>
+          
+          <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border-subtle)', borderRadius: '12px', overflow: 'hidden' }}>
+            {isLoading ? (
+              <div style={{ padding: '40px', textAlign: 'center', color: 'var(--text-muted)' }}>Loading...</div>
+            ) : recentCases.length === 0 ? (
+              <div style={{ padding: '60px 24px', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px' }}>
+                <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: 'var(--bg-body-pattern-1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <FolderKanban size={24} color="var(--text-dim)" />
+                </div>
+                <div style={{ color: 'var(--text-muted)' }}>No investigations yet.</div>
+                <button
+                  onClick={() => onNavigate('workspace')}
+                  style={{
+                    background: 'var(--bg-body-pattern-1)', color: 'var(--cyan-primary)', border: '1px solid var(--border-subtle)',
+                    borderRadius: '6px', padding: '8px 16px', fontSize: '13px', fontWeight: 600, cursor: 'pointer'
+                  }}
+                >
+                  + New Investigation
+                </button>
+              </div>
+            ) : (
+              <div style={{ overflowX: 'auto' }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+                  <thead>
+                    <tr style={{ borderBottom: '1px solid var(--border-subtle)', color: 'var(--text-dim)', fontSize: '11px', textTransform: 'uppercase' }}>
+                      <th style={{ padding: '12px 16px', fontWeight: 600 }}>Case ID</th>
+                      <th style={{ padding: '12px 16px', fontWeight: 600 }}>Media</th>
+                      <th style={{ padding: '12px 16px', fontWeight: 600 }}>Status</th>
+                      <th style={{ padding: '12px 16px', fontWeight: 600 }}>Result</th>
+                      <th style={{ padding: '12px 16px', textAlign: 'right', fontWeight: 600 }}>Action</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {recentCases.slice(0, 5).map((c) => {
+                      const isHighRisk = c.authenticity_score <= 30;
+                      const isMediumRisk = c.authenticity_score > 30 && c.authenticity_score <= 60;
+                      
+                      return (
+                        <tr key={c.case_id} style={{ borderBottom: '1px solid var(--border-subtle)' }}>
+                          <td style={{ padding: '12px 16px', fontFamily: 'var(--font-mono)', fontSize: '12px', color: 'var(--text-main)', fontWeight: 500 }}>
+                            {c.case_id}
+                          </td>
+                          <td style={{ padding: '12px 16px', fontSize: '13px', color: 'var(--text-muted)' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                              {c.media_type === 'IMAGE' && <ImageIcon size={14} color="#00f0ff" />}
+                              {c.media_type === 'VIDEO' && <VideoIcon size={14} color="#38bdf8" />}
+                              {c.media_type === 'AUDIO' && <Mic size={14} color="#06b6d4" />}
+                              {c.media_type === 'TEXT' && <FileText size={14} color="#60a5fa" />}
+                              <span style={{ maxWidth: '120px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                {c.file_name}
+                              </span>
+                            </div>
+                          </td>
+                          <td style={{ padding: '12px 16px' }}>
+                            <span style={{ fontSize: '11px', fontWeight: 600, color: 'var(--risk-low-text)', background: 'var(--risk-low-bg)', padding: '2px 8px', borderRadius: '12px', border: '1px solid var(--risk-low-border)' }}>
+                              COMPLETED
+                            </span>
+                          </td>
+                          <td style={{ padding: '12px 16px', fontSize: '12px', fontWeight: 600, color: isHighRisk ? 'var(--risk-high)' : (isMediumRisk ? 'var(--risk-medium)' : 'var(--risk-low)') }}>
+                            {c.assessment}
+                          </td>
+                          <td style={{ padding: '12px 16px', textAlign: 'right' }}>
+                            <button
+                              onClick={() => {
+                                onSelectCase(c.case_id);
+                                onNavigate(c.media_type.toLowerCase());
+                              }}
+                              style={{
+                                background: 'transparent', border: '1px solid var(--border-subtle)',
+                                color: 'var(--cyan-primary)', padding: '4px 10px', borderRadius: '4px',
+                                fontSize: '11px', fontWeight: 600, cursor: 'pointer'
+                              }}
+                            >
+                              View
+                            </button>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
         </div>
 
-        <div style={{ overflowX: 'auto' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
-            <thead>
-              <tr style={{ borderBottom: '1px solid rgba(56, 189, 248, 0.15)', color: '#64748b', fontSize: '11px', textTransform: 'uppercase' }}>
-                <th style={{ padding: '12px 14px' }}>Case ID</th>
-                <th style={{ padding: '12px 14px' }}>Target File</th>
-                <th style={{ padding: '12px 14px' }}>Media Type</th>
-                <th style={{ padding: '12px 14px' }}>Model Assessment</th>
-                <th style={{ padding: '12px 14px' }}>Score</th>
-                <th style={{ padding: '12px 14px' }}>Risk</th>
-                <th style={{ padding: '12px 14px' }}>Confidence</th>
-                <th style={{ padding: '12px 14px', textAlign: 'right' }}>Action</th>
-              </tr>
-            </thead>
-            <tbody>
-              {recentCases.map((c) => {
-                const isHighRisk = c.authenticity_score <= 30;
-                const isMediumRisk = c.authenticity_score > 30 && c.authenticity_score <= 60;
-                const riskBadge = isHighRisk ? 'badge-risk-high' : (isMediumRisk ? 'badge-risk-medium' : 'badge-risk-low');
-
-                return (
-                  <tr
-                    key={c.case_id}
-                    style={{
-                      borderBottom: '1px solid rgba(56, 189, 248, 0.08)',
-                      transition: 'background 0.15s ease'
-                    }}
-                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(0, 240, 255, 0.04)'}
-                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-                  >
-                    <td style={{ padding: '12px 14px', fontFamily: 'var(--font-mono)', fontSize: '12px', color: '#00f0ff', fontWeight: 600 }}>
-                      {c.case_id}
-                    </td>
-                    <td style={{ padding: '12px 14px', fontSize: '13px', color: '#f1f5f9', fontWeight: 500 }}>
-                      {c.file_name}
-                    </td>
-                    <td style={{ padding: '12px 14px', fontSize: '12px', color: '#94a3b8' }}>
-                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
-                        {c.media_type === 'IMAGE' && <ImageIcon size={14} color="#00f0ff" />}
-                        {c.media_type === 'VIDEO' && <VideoIcon size={14} color="#38bdf8" />}
-                        {c.media_type === 'AUDIO' && <Mic size={14} color="#06b6d4" />}
-                        {c.media_type === 'TEXT' && <FileText size={14} color="#60a5fa" />}
-                        {c.media_type}
-                      </span>
-                    </td>
-                    <td style={{ padding: '12px 14px', fontSize: '12px', fontWeight: 600, color: isHighRisk ? '#f87171' : (isMediumRisk ? '#fbbf24' : '#34d399') }}>
-                      {c.assessment}
-                    </td>
-                    <td style={{ padding: '12px 14px', fontFamily: 'var(--font-mono)', fontSize: '13px', fontWeight: 700, color: '#f8fafc' }}>
-                      {c.authenticity_score}/100
-                    </td>
-                    <td style={{ padding: '12px 14px' }}>
-                      <span className={riskBadge}>{c.risk_level}</span>
-                    </td>
-                    <td style={{ padding: '12px 14px', fontFamily: 'var(--font-mono)', fontSize: '12px', color: '#94a3b8' }}>
-                      {c.confidence_level} ({Math.round(c.confidence_score * 100)}%)
-                    </td>
-                    <td style={{ padding: '12px 14px', textAlign: 'right' }}>
-                      <button
-                        onClick={() => {
-                          onSelectCase(c.case_id);
-                          onNavigate(c.media_type.toLowerCase());
-                        }}
-                        style={{
-                          background: 'rgba(56, 189, 248, 0.1)',
-                          border: '1px solid rgba(56, 189, 248, 0.3)',
-                          color: '#38bdf8',
-                          padding: '5px 12px',
-                          borderRadius: '4px',
-                          fontSize: '11px',
-                          fontWeight: 600,
-                          cursor: 'pointer'
-                        }}
-                      >
-                        Inspect
-                      </button>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+        {/* ACTIVITY */}
+        <div style={{ flex: 1, minWidth: '0' }}>
+          <h2 style={{ fontSize: '16px', fontWeight: 700, color: 'var(--text-main)', letterSpacing: '0.5px', marginBottom: '16px' }}>
+            Activity
+          </h2>
+          <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border-subtle)', borderRadius: '12px', padding: '32px 24px', height: 'calc(100% - 38px)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '16px' }}>
+            <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: 'var(--bg-body-pattern-1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <Activity size={24} color="var(--text-dim)" />
+            </div>
+            <div style={{ color: 'var(--text-muted)', fontSize: '14px', textAlign: 'center' }}>
+              No recent activity to show.
+            </div>
+          </div>
         </div>
-      </section>
+
+      </div>
     </div>
   );
 };

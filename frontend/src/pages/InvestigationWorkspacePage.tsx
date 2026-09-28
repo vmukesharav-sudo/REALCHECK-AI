@@ -1,26 +1,27 @@
-import React, { useState } from 'react';
-import { 
-  FolderKanban, 
-  Plus, 
-  Layers, 
-  ShieldAlert, 
-  FileSpreadsheet, 
-  Pin, 
-  CheckSquare, 
-  Square, 
-  ExternalLink, 
-  Sparkles, 
-  AlertTriangle, 
-  Image as ImageIcon, 
-  Video as VideoIcon, 
-  Mic, 
+import React, { useState, useEffect } from 'react';
+import {
+  FolderKanban,
+  FileSpreadsheet,
+  Search,
+  Filter,
+  Plus,
+  ArrowLeft,
+  Image as ImageIcon,
+  Video as VideoIcon,
+  Mic,
   FileText,
+  ShieldCheck,
+  AlertTriangle,
   Clock,
-  ArrowRight
+  CheckCircle2,
+  Cpu,
+  Fingerprint
 } from 'lucide-react';
-import { SAMPLE_CASES } from '../data/sampleCases';
 import { forensicApi } from '../services/api';
-import { CrossMediaFusionResult } from '../types/forensics';
+import { InvestigationResult } from '../types/forensics';
+import { Loader2 } from 'lucide-react';
+import { ScoreMeter } from '../components/ScoreMeter';
+import { LoadingState, EmptyState } from '../components/AppStates';
 
 interface InvestigationWorkspacePageProps {
   onNavigate: (tab: string) => void;
@@ -28,301 +29,375 @@ interface InvestigationWorkspacePageProps {
   onGenerateReport: (caseId: string) => void;
 }
 
+type FilterType = 'All' | 'IMAGE' | 'VIDEO' | 'AUDIO' | 'TEXT';
+type ViewState = 'list' | 'detail';
+
 export const InvestigationWorkspacePage: React.FC<InvestigationWorkspacePageProps> = ({
   onNavigate,
   onSelectCase,
   onGenerateReport
 }) => {
-  const [selectedCaseIds, setSelectedCaseIds] = useState<string[]>([
-    'RC-2026-0042',
-    'RC-2026-0043',
-    'RC-2026-0044',
-    'RC-2026-0045'
-  ]);
+  const [cases, setCases] = useState<InvestigationResult[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [activeFilter, setActiveFilter] = useState<FilterType>('All');
+  const [searchQuery, setSearchQuery] = useState('');
+  
+  const [viewState, setViewState] = useState<ViewState>('list');
+  const [selectedCase, setSelectedCase] = useState<InvestigationResult | null>(null);
 
-  const [fusionResult, setFusionResult] = useState<CrossMediaFusionResult | null>(() => {
-    try {
-      return forensicApi.fuseInvestigations(['RC-2026-0042', 'RC-2026-0043', 'RC-2026-0044', 'RC-2026-0045']);
-    } catch {
-      return null;
-    }
+  useEffect(() => {
+    let isMounted = true;
+    forensicApi.getInvestigations()
+      .then(data => {
+        if (isMounted) {
+          setCases(data);
+          setIsLoading(false);
+        }
+      })
+      .catch(() => {
+        if (isMounted) setIsLoading(false);
+      });
+    return () => { isMounted = false; };
+  }, []);
+
+  const filteredCases = cases.filter(c => {
+    const matchesFilter = activeFilter === 'All' || c.media_type === activeFilter;
+    const matchesSearch = c.case_id.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                          c.file_name.toLowerCase().includes(searchQuery.toLowerCase());
+    return matchesFilter && matchesSearch;
   });
 
-  const allBenchmarkCases = Object.values(SAMPLE_CASES);
-
-  const toggleCaseSelection = (caseId: string) => {
-    let updated: string[];
-    if (selectedCaseIds.includes(caseId)) {
-      updated = selectedCaseIds.filter(id => id !== caseId);
-    } else {
-      updated = [...selectedCaseIds, caseId];
-    }
-    setSelectedCaseIds(updated);
-
-    if (updated.length > 0) {
-      try {
-        const fused = forensicApi.fuseInvestigations(updated);
-        setFusionResult(fused);
-      } catch {
-        setFusionResult(null);
-      }
-    } else {
-      setFusionResult(null);
+  const getMediaIcon = (type: string) => {
+    switch (type) {
+      case 'IMAGE': return <ImageIcon size={14} />;
+      case 'VIDEO': return <VideoIcon size={14} />;
+      case 'AUDIO': return <Mic size={14} />;
+      case 'TEXT': return <FileText size={14} />;
+      default: return <FolderKanban size={14} />;
     }
   };
 
+  const deriveStatus = (c: InvestigationResult) => {
+    if (c.risk_level === 'High Risk' || c.risk_level === 'Medium Risk') return 'Review';
+    return 'Completed';
+  };
+
+  const handleViewCase = (c: InvestigationResult) => {
+    setSelectedCase(c);
+    setViewState('detail');
+  };
+
+  if (isLoading) {
+    return <LoadingState message="Loading workspace..." />;
+  }
+
   return (
-    <div style={{ maxWidth: '1440px', margin: '0 auto', padding: '24px 20px 80px' }}>
-      {/* Title & Case Header */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px', flexWrap: 'wrap', gap: '16px' }}>
-        <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span style={{ fontSize: '11px', color: '#00f0ff', letterSpacing: '1px', textTransform: 'uppercase', fontWeight: 700 }}>
-              CROSS-MEDIA INVESTIGATION HUB
-            </span>
-            <span style={{ fontSize: '11px', color: '#64748b' }}>&bull;</span>
-            <span style={{ fontSize: '11px', color: '#94a3b8' }}>MULTI-MODAL EVIDENCE FUSION</span>
-          </div>
-          <h1 style={{ fontSize: '28px', fontWeight: 800, color: '#f8fafc', letterSpacing: '0.5px', marginTop: '2px' }}>
-            CASE DOSSIER: SUSPICIOUS SOCIAL MEDIA PROPAGATION (RC-2026-DOSSIER-01)
-          </h1>
-        </div>
-
-        <button
-          onClick={() => onGenerateReport('RC-2026-0042')}
-          className="btn-cyber-primary"
-          style={{ fontSize: '12px' }}
-        >
-          <FileSpreadsheet size={15} />
-          <span>GENERATE MASTER DOSSIER REPORT</span>
-        </button>
-      </div>
-
-      {/* Top Banner: Fused Cross-Media Assessment */}
-      {fusionResult && (
-        <div
-          className="glass-panel-glow forensic-corner"
-          style={{
-            padding: '24px',
-            marginBottom: '32px',
-            backgroundColor: '#0c1426',
-            borderColor: fusionResult.risk_level === 'High Risk' ? 'rgba(239, 68, 68, 0.4)' : 'rgba(0, 240, 255, 0.4)'
-          }}
-        >
-          <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: '20px' }}>
-            <div style={{ flex: 1, minWidth: '300px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
-                <span style={{ fontSize: '11px', color: '#00f0ff', letterSpacing: '1px', textTransform: 'uppercase', fontWeight: 700 }}>
-                  CROSS-MEDIA EVIDENCE SYNTHESIS
-                </span>
-                <span className={fusionResult.risk_level === 'High Risk' ? 'badge-risk-high' : 'badge-risk-medium'}>
-                  {fusionResult.risk_level}
-                </span>
-                {fusionResult.uncertainty_detected && (
-                  <span className="badge-risk-uncertain">
-                    Uncertainty / High Variance
-                  </span>
-                )}
-              </div>
-
-              <h2 style={{ fontSize: '22px', fontWeight: 800, color: '#f8fafc', marginBottom: '8px' }}>
-                {fusionResult.assessment}
-              </h2>
-
-              <p style={{ fontSize: '13px', color: '#cbd5e1', lineHeight: 1.6, maxWidth: '720px' }}>
-                {fusionResult.fusion_explanation}
-              </p>
-
-              <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginTop: '14px', fontSize: '11px', color: '#94a3b8' }}>
-                <div>Media Types Fused: <strong style={{ color: '#00f0ff' }}>{fusionResult.media_types_analyzed.join(', ')}</strong></div>
-                <div>Files Corroborated: <strong style={{ color: '#f8fafc' }}>{fusionResult.files_analyzed_count}</strong></div>
-              </div>
+    <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '28px 24px 80px', width: '100%' }}>
+      
+      {/* ── LIST VIEW ──────────────────────────────────────────────────────── */}
+      {viewState === 'list' && (
+        <>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '28px', flexWrap: 'wrap', gap: '16px' }}>
+            <div>
+              <h1 style={{ fontSize: '24px', fontWeight: 800, color: 'var(--text-main)', marginBottom: '6px' }}>Investigation Workspace</h1>
+              <p style={{ color: 'var(--text-muted)', fontSize: '14px' }}>Manage, review, and report on forensic investigations.</p>
             </div>
+            <button
+              onClick={() => onNavigate('new-investigation')}
+              style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'var(--btn-primary-bg)', color: 'var(--btn-primary-text)', border: 'none', borderRadius: '8px', padding: '9px 16px', cursor: 'pointer', fontWeight: 600, fontSize: '14px' }}
+            >
+              <Plus size={16} /> New Investigation
+            </button>
+          </div>
 
-            {/* Score Ring / Summary */}
-            <div style={{ textAlign: 'right', display: 'flex', alignItems: 'center', gap: '24px' }}>
-              <div>
-                <div style={{ fontSize: '11px', color: '#94a3b8', textTransform: 'uppercase' }}>Unified Score</div>
-                <div style={{ fontSize: '38px', fontWeight: 800, fontFamily: 'var(--font-mono)', color: fusionResult.unified_authenticity_score <= 30 ? '#ef4444' : '#f59e0b' }}>
-                  {fusionResult.unified_authenticity_score} <span style={{ fontSize: '16px', color: '#64748b' }}>/ 100</span>
+          <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr)', gap: '32px' }}>
+            
+            {/* CASES TABLE */}
+            <div>
+              <h2 style={{ fontSize: '16px', fontWeight: 700, color: 'var(--text-main)', marginBottom: '16px' }}>Active Cases</h2>
+              
+              {/* Toolbar */}
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px', flexWrap: 'wrap', gap: '12px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', background: 'var(--bg-card)', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '4px' }}>
+                  {(['All', 'IMAGE', 'VIDEO', 'AUDIO', 'TEXT'] as FilterType[]).map(f => (
+                    <button
+                      key={f}
+                      onClick={() => setActiveFilter(f)}
+                      style={{
+                        background: activeFilter === f ? 'var(--bg-body-pattern-1)' : 'transparent',
+                        color: activeFilter === f ? 'var(--text-main)' : 'var(--text-muted)',
+                        border: 'none', padding: '6px 12px', borderRadius: '4px', fontSize: '12px', fontWeight: 600, cursor: 'pointer'
+                      }}
+                    >
+                      {f === 'All' ? 'All' : f.charAt(0) + f.slice(1).toLowerCase()}
+                    </button>
+                  ))}
                 </div>
-                <div style={{ fontSize: '10px', color: '#64748b' }}>Cross-Engine Average</div>
+
+                <div style={{ position: 'relative', width: '260px' }}>
+                  <Search size={14} style={{ position: 'absolute', left: '12px', top: '10px', color: 'var(--text-dim)' }} />
+                  <input
+                    type="text"
+                    placeholder="Search cases or files..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    style={{
+                      width: '100%', background: 'var(--bg-card)', border: '1px solid var(--border-subtle)', borderRadius: '8px',
+                      padding: '8px 12px 8px 34px', color: 'var(--text-main)', fontSize: '13px', outline: 'none'
+                    }}
+                  />
+                </div>
               </div>
 
-              <div style={{ borderLeft: '1px solid rgba(56, 189, 248, 0.2)', paddingLeft: '20px', textAlign: 'left' }}>
-                <div style={{ fontSize: '11px', color: '#94a3b8' }}>Avg AI Probability: <strong style={{ color: '#f87171' }}>{fusionResult.average_ai_generation_probability}%</strong></div>
-                <div style={{ fontSize: '11px', color: '#94a3b8', marginTop: '4px' }}>Avg Manipulation: <strong style={{ color: '#fbbf24' }}>{fusionResult.average_manipulation_risk}%</strong></div>
-                <div style={{ fontSize: '11px', color: '#94a3b8', marginTop: '4px' }}>Signal Variance: <strong>{fusionResult.signal_variance_spread} pts</strong></div>
-              </div>
+              {filteredCases.length > 0 ? (
+                <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border-subtle)', borderRadius: '12px', overflow: 'hidden' }}>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '13px' }}>
+                    <thead>
+                      <tr style={{ background: 'var(--bg-body-pattern-1)', borderBottom: '1px solid var(--border-subtle)', color: 'var(--text-dim)', textTransform: 'uppercase', letterSpacing: '0.5px', fontSize: '11px' }}>
+                        <th style={{ padding: '14px 16px', fontWeight: 600 }}>Case ID</th>
+                        <th style={{ padding: '14px 16px', fontWeight: 600 }}>Media</th>
+                        <th style={{ padding: '14px 16px', fontWeight: 600 }}>Filename</th>
+                        <th style={{ padding: '14px 16px', fontWeight: 600 }}>Created</th>
+                        <th style={{ padding: '14px 16px', fontWeight: 600 }}>Result</th>
+                        <th style={{ padding: '14px 16px', fontWeight: 600 }}>Status</th>
+                        <th style={{ padding: '14px 16px', fontWeight: 600, textAlign: 'right' }}>Action</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {filteredCases.map((c, i) => {
+                        const status = deriveStatus(c);
+                        return (
+                          <tr key={i} style={{ borderBottom: '1px solid var(--border-subtle)', background: 'transparent', transition: 'background 0.2s' }}>
+                            <td style={{ padding: '14px 16px', fontFamily: 'var(--font-mono)', color: 'var(--cyan-primary)', fontWeight: 600 }}>
+                              {c.case_id}
+                            </td>
+                            <td style={{ padding: '14px 16px' }}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--text-muted)' }}>
+                                {getMediaIcon(c.media_type)}
+                                <span style={{ fontSize: '12px' }}>{c.media_type.charAt(0) + c.media_type.slice(1).toLowerCase()}</span>
+                              </div>
+                            </td>
+                            <td style={{ padding: '14px 16px', color: 'var(--text-main)', fontWeight: 500, maxWidth: '200px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                              {c.file_name}
+                            </td>
+                            <td style={{ padding: '14px 16px', color: 'var(--text-muted)' }}>
+                              {new Date(c.timestamp).toLocaleDateString()}
+                            </td>
+                            <td style={{ padding: '14px 16px' }}>
+                              <span style={{
+                                padding: '4px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: 700,
+                                background: c.risk_level === 'High Risk' ? 'rgba(239,68,68,0.1)' : c.risk_level === 'Medium Risk' ? 'rgba(245,158,11,0.1)' : 'rgba(16,185,129,0.1)',
+                                color: c.risk_level === 'High Risk' ? 'var(--risk-high)' : c.risk_level === 'Medium Risk' ? 'var(--risk-medium)' : 'var(--risk-low)'
+                              }}>
+                                {c.risk_level}
+                              </span>
+                            </td>
+                            <td style={{ padding: '14px 16px' }}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: status === 'Review' ? 'var(--risk-medium)' : 'var(--text-muted)' }}>
+                                {status === 'Review' ? <AlertTriangle size={14} /> : <CheckCircle2 size={14} />}
+                                <span>{status}</span>
+                              </div>
+                            </td>
+                            <td style={{ padding: '14px 16px', textAlign: 'right' }}>
+                              <button
+                                onClick={() => handleViewCase(c)}
+                                style={{ background: 'var(--bg-body-pattern-1)', border: '1px solid var(--border-subtle)', color: 'var(--text-main)', padding: '6px 12px', borderRadius: '6px', fontSize: '12px', fontWeight: 500, cursor: 'pointer' }}
+                              >
+                                View
+                              </button>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                <EmptyState
+                  icon="folder"
+                  title="No investigations found"
+                  message="There are no cases matching your filters."
+                  actionLabel="+ Start New Investigation"
+                  onAction={() => onNavigate('new-investigation')}
+                />
+              )}
             </div>
+
+            {/* REPORTS SECTION */}
+            <div>
+              <h2 style={{ fontSize: '16px', fontWeight: 700, color: 'var(--text-main)', marginBottom: '16px' }}>Generated Reports</h2>
+              {filteredCases.filter(c => c.risk_level === 'High Risk').length > 0 ? (
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '16px' }}>
+                  {filteredCases.filter(c => c.risk_level === 'High Risk').map((c, i) => (
+                    <div key={i} style={{ background: 'var(--bg-card)', border: '1px solid var(--border-subtle)', borderRadius: '12px', padding: '16px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--text-muted)' }}>
+                          <FileSpreadsheet size={16} />
+                          <span style={{ fontSize: '12px', fontWeight: 600 }}>Forensic Report</span>
+                        </div>
+                        <span style={{ fontSize: '11px', color: 'var(--text-dim)' }}>{new Date(c.timestamp).toLocaleDateString()}</span>
+                      </div>
+                      <div>
+                        <div style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-main)' }}>{c.file_name}</div>
+                        <div style={{ fontSize: '12px', color: 'var(--text-dim)', fontFamily: 'var(--font-mono)', marginTop: '4px' }}>{c.case_id}</div>
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '4px' }}>
+                        <span style={{ fontSize: '11px', padding: '2px 8px', background: 'rgba(16,185,129,0.1)', color: 'var(--risk-low)', borderRadius: '12px', fontWeight: 600 }}>Completed</span>
+                        <button onClick={() => onGenerateReport(c.case_id)} style={{ background: 'none', border: 'none', color: 'var(--cyan-primary)', fontSize: '12px', fontWeight: 600, cursor: 'pointer' }}>Download PDF</button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <EmptyState
+                  icon="file"
+                  title="No reports generated yet"
+                  message="Open a case to generate a forensic report."
+                />
+              )}
+            </div>
+            
           </div>
-        </div>
+        </>
       )}
 
-      {/* Grid: Left (Evidence Pinboard) & Right (Case Timeline & Top Signals) */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(320px, 1.4fr) minmax(300px, 1fr)', gap: '24px' }}>
-        {/* LEFT: Evidence Pinboard */}
-        <div>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
-            <div style={{ fontSize: '16px', fontWeight: 800, color: '#f8fafc', letterSpacing: '0.5px' }}>
-              EVIDENCE PINBOARD ({selectedCaseIds.length} ACTIVE ARTIFACTS)
+      {/* ── DETAIL VIEW ──────────────────────────────────────────────────────── */}
+      {viewState === 'detail' && selectedCase && (
+        <>
+          <button
+            onClick={() => setViewState('list')}
+            style={{ display: 'flex', alignItems: 'center', gap: '6px', background: 'none', border: 'none', color: 'var(--text-muted)', fontSize: '13px', cursor: 'pointer', marginBottom: '24px', padding: 0 }}
+          >
+            <ArrowLeft size={16} /> Back to Cases
+          </button>
+
+          <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: '16px', marginBottom: '28px' }}>
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
+                <span style={{ fontSize: '11px', color: 'var(--cyan-primary)', fontWeight: 700, fontFamily: 'var(--font-mono)' }}>{selectedCase.case_id}</span>
+                <span style={{ fontSize: '11px', color: 'var(--text-dim)' }}>&bull;</span>
+                <span style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase' }}>{selectedCase.media_type} Investigation</span>
+              </div>
+              <h1 style={{ fontSize: '24px', fontWeight: 800, color: 'var(--text-main)' }}>{selectedCase.file_name}</h1>
             </div>
-            <div style={{ fontSize: '11px', color: '#94a3b8' }}>
-              Check/uncheck cards to test cross-media fusion
+            <div style={{ display: 'flex', gap: '10px' }}>
+              <button
+                onClick={() => {
+                  onSelectCase(selectedCase.case_id);
+                  onNavigate(selectedCase.media_type.toLowerCase());
+                }}
+                style={{ display: 'flex', alignItems: 'center', gap: '6px', background: 'var(--bg-body-pattern-1)', border: '1px solid var(--border-subtle)', color: 'var(--text-main)', padding: '8px 16px', borderRadius: '8px', fontSize: '13px', fontWeight: 600, cursor: 'pointer' }}
+              >
+                Open in Engine
+              </button>
+              <button
+                onClick={() => onGenerateReport(selectedCase.case_id)}
+                style={{ display: 'flex', alignItems: 'center', gap: '6px', background: 'var(--btn-primary-bg)', border: 'none', color: 'var(--btn-primary-text)', padding: '8px 16px', borderRadius: '8px', fontSize: '13px', fontWeight: 600, cursor: 'pointer' }}
+              >
+                <FileSpreadsheet size={16} /> Generate Report
+              </button>
             </div>
           </div>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            {allBenchmarkCases.map((c) => {
-              const isChecked = selectedCaseIds.includes(c.case_id);
-              const isHighRisk = c.authenticity_score <= 30;
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '24px' }}>
+            
+            {/* Left Column: Media & AI Analysis */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+              
+              <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border-subtle)', borderRadius: '12px', padding: '24px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', fontWeight: 700, color: 'var(--cyan-primary)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '16px' }}>
+                  <Cpu size={16} /> AI Forensic Analysis
+                </div>
+                
+                <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '24px' }}>
+                  <ScoreMeter
+                    score={selectedCase.authenticity_score}
+                    riskLevel={selectedCase.risk_level}
+                    assessment={selectedCase.assessment}
+                    confidenceScore={selectedCase.confidence_score}
+                    size={200}
+                  />
+                </div>
 
-              return (
-                <div
-                  key={c.case_id}
-                  className="glass-panel"
-                  style={{
-                    padding: '16px 18px',
-                    borderColor: isChecked ? 'rgba(0, 240, 255, 0.4)' : 'rgba(56, 189, 248, 0.1)',
-                    backgroundColor: isChecked ? 'rgba(13, 22, 40, 0.9)' : 'rgba(11, 16, 28, 0.6)'
-                  }}
-                >
-                  <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '12px' }}>
-                    <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
-                      <button
-                        onClick={() => toggleCaseSelection(c.case_id)}
-                        style={{
-                          background: 'transparent',
-                          border: 'none',
-                          color: isChecked ? '#00f0ff' : '#64748b',
-                          cursor: 'pointer',
-                          padding: '2px 0 0 0'
-                        }}
-                      >
-                        {isChecked ? <CheckSquare size={18} /> : <Square size={18} />}
-                      </button>
+                <div style={{ background: 'var(--bg-body-pattern-1)', borderRadius: '8px', padding: '16px', fontSize: '13px', color: 'var(--text-muted)', lineHeight: 1.6 }}>
+                  <strong style={{ color: 'var(--text-main)', display: 'block', marginBottom: '8px' }}>Forensic Conclusion</strong>
+                  {selectedCase.why_result_explanation}
+                </div>
 
-                      <div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-                          <span style={{ fontFamily: 'var(--font-mono)', fontSize: '12px', color: '#00f0ff', fontWeight: 700 }}>
-                            {c.case_id}
-                          </span>
-                          <span style={{ fontSize: '11px', color: '#94a3b8' }}>&bull; {c.media_type}</span>
-                          <span className={isHighRisk ? 'badge-risk-high' : 'badge-risk-low'}>
-                            {c.assessment}
-                          </span>
+                {selectedCase.top_contributing_signals && selectedCase.top_contributing_signals.length > 0 && (
+                  <div style={{ marginTop: '20px' }}>
+                    <div style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-main)', marginBottom: '10px' }}>Primary Signals</div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                      {selectedCase.top_contributing_signals.map((sig, i) => (
+                        <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', fontSize: '12px' }}>
+                          <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'var(--risk-high)', marginTop: '5px', flexShrink: 0 }} />
+                          <div>
+                            <span style={{ color: 'var(--text-main)', fontWeight: 600 }}>{sig.signal}</span>
+                            <span style={{ color: 'var(--text-muted)' }}> — {sig.impact}</span>
+                          </div>
                         </div>
-
-                        <div style={{ fontSize: '14px', fontWeight: 700, color: '#f8fafc', marginTop: '4px' }}>
-                          {c.file_name}
-                        </div>
-
-                        <p style={{ fontSize: '12px', color: '#94a3b8', marginTop: '4px', lineHeight: 1.4 }}>
-                          {c.why_result_explanation.slice(0, 140)}...
-                        </p>
-                      </div>
+                      ))}
                     </div>
+                  </div>
+                )}
+              </div>
+            </div>
 
-                    {/* Score and Quick Inspect button */}
-                    <div style={{ textAlign: 'right', minWidth: '90px' }}>
-                      <div style={{ fontSize: '18px', fontWeight: 800, fontFamily: 'var(--font-mono)', color: isHighRisk ? '#f87171' : '#34d399' }}>
-                        {c.authenticity_score}/100
+            {/* Right Column: Metadata & Provenance */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+              
+              <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border-subtle)', borderRadius: '12px', padding: '24px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', fontWeight: 700, color: 'var(--blue-soft)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '16px' }}>
+                  <Fingerprint size={16} /> C2PA Provenance & Cryptography
+                </div>
+                
+                <div style={{ background: 'rgba(15, 23, 42, 0.4)', border: '1px dashed var(--border-subtle)', borderRadius: '8px', padding: '16px', marginBottom: '20px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '12px' }}>
+                    <ShieldCheck size={24} color={selectedCase.metadata.software_signature ? 'var(--risk-low)' : 'var(--text-dim)'} />
+                    <div>
+                      <div style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-main)' }}>Content Credentials</div>
+                      <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
+                        {selectedCase.metadata.software_signature ? 'Cryptographic provenance data found.' : 'No C2PA manifest attached to this file.'}
                       </div>
-                      <button
-                        onClick={() => {
-                          onSelectCase(c.case_id);
-                          onNavigate(c.media_type.toLowerCase());
-                        }}
-                        style={{
-                          marginTop: '6px',
-                          background: 'rgba(56, 189, 248, 0.1)',
-                          border: '1px solid rgba(56, 189, 248, 0.3)',
-                          color: '#38bdf8',
-                          padding: '4px 10px',
-                          borderRadius: '4px',
-                          fontSize: '10px',
-                          fontWeight: 600,
-                          cursor: 'pointer',
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          gap: '4px'
-                        }}
-                      >
-                        <span>Open Lab</span>
-                        <ArrowRight size={10} />
-                      </button>
                     </div>
                   </div>
                 </div>
-              );
-            })}
-          </div>
-        </div>
 
-        {/* RIGHT: Case Timeline & Top Cross-Media Signals */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-          {/* Top Cross-Media Signals */}
-          <div className="glass-panel" style={{ padding: '20px' }}>
-            <div style={{ fontSize: '13px', fontWeight: 700, color: '#38bdf8', letterSpacing: '0.8px', textTransform: 'uppercase', marginBottom: '14px' }}>
-              TOP CORROBORATING SIGNALS
-            </div>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              {fusionResult?.top_contributing_signals.map((sig, idx) => (
-                <div
-                  key={idx}
-                  style={{
-                    padding: '10px 12px',
-                    borderRadius: '6px',
-                    backgroundColor: 'rgba(15, 23, 42, 0.6)',
-                    border: '1px solid rgba(56, 189, 248, 0.1)'
-                  }}
-                >
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '3px' }}>
-                    <span style={{ fontSize: '12px', fontWeight: 600, color: '#f8fafc' }}>
-                      {sig.name}
-                    </span>
-                    <span className="badge-risk-high">{sig.strength}</span>
-                  </div>
-                  <div style={{ fontSize: '11px', color: '#94a3b8' }}>
-                    {sig.explanation}
-                  </div>
+                <div style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-main)', marginBottom: '10px' }}>Extracted Metadata</div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '12px' }}>
+                  {[
+                    { label: 'Filename', value: selectedCase.metadata.file_name },
+                    { label: 'File Size', value: selectedCase.metadata.file_size_formatted },
+                    { label: 'MIME Type', value: selectedCase.metadata.mime_type },
+                    { label: 'Date Created', value: selectedCase.metadata.creation_time || 'Unknown' },
+                    { label: 'Software', value: selectedCase.metadata.software_signature || 'None detected' },
+                    { label: 'SHA-256 Hash', value: selectedCase.metadata.hash_sha256.slice(0, 16) + '...', mono: true },
+                  ].map((row, i) => (
+                    <div key={i} style={{ display: 'flex', justifyContent: 'space-between', paddingBottom: '6px', borderBottom: '1px solid var(--border-subtle)' }}>
+                      <span style={{ color: 'var(--text-dim)' }}>{row.label}</span>
+                      <span style={{ color: 'var(--text-muted)', fontFamily: row.mono ? 'var(--font-mono)' : 'inherit' }}>{row.value}</span>
+                    </div>
+                  ))}
                 </div>
-              ))}
+              </div>
+
+              <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border-subtle)', borderRadius: '12px', padding: '24px' }}>
+                <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-main)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '16px' }}>
+                  Investigation Notes
+                </div>
+                <p style={{ fontSize: '13px', color: 'var(--text-muted)', lineHeight: 1.5, margin: 0 }}>
+                  Automated intake completed via REALCHECK Hub. Case status is set to {deriveStatus(selectedCase)}. Media preserved in isolated environment. Report generation available via export.
+                </p>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '16px', fontSize: '11px', color: 'var(--text-dim)' }}>
+                  <Clock size={12} /> Last updated: {new Date(selectedCase.timestamp).toLocaleString()}
+                </div>
+              </div>
             </div>
+
           </div>
+        </>
+      )}
 
-          {/* Case Chronological Timeline */}
-          <div className="glass-panel" style={{ padding: '20px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', fontWeight: 700, color: '#00f0ff', letterSpacing: '0.8px', textTransform: 'uppercase', marginBottom: '14px' }}>
-              <Clock size={15} />
-              <span>INVESTIGATION TIMELINE & CHAIN OF CUSTODY</span>
-            </div>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', position: 'relative', paddingLeft: '16px' }}>
-              <div style={{ position: 'absolute', top: '8px', bottom: '8px', left: '4px', width: '2px', backgroundColor: 'rgba(56, 189, 248, 0.2)' }} />
-
-              {[
-                { time: '08:14 UTC', title: 'Suspect Image Uploaded', desc: 'Case RC-2026-0042 initiated; 91% AI probability identified.', icon: ImageIcon },
-                { time: '08:22 UTC', title: 'Video Statement Corroborated', desc: 'Case RC-2026-0043 linked; lip-sync offset at 00:08 matches speech drift.', icon: VideoIcon },
-                { time: '08:35 UTC', title: 'Voicemail Intercept Ingested', desc: 'Case RC-2026-0044 audio voice clone verified (00:17 - 00:21).', icon: Mic },
-                { time: '08:48 UTC', title: 'Briefing Memo Stylometry Run', desc: 'Case RC-2026-0045 text verified as AI-assisted drafting.', icon: FileText },
-                { time: '09:00 UTC', title: 'Evidence Fusion Hub Synthesized', desc: 'Cross-media risk assessment calculated with 4 corroborating channels.', icon: Sparkles }
-              ].map((event, idx) => {
-                const Icon = event.icon;
-                return (
-                  <div key={idx} style={{ position: 'relative' }}>
-                    <div style={{ position: 'absolute', left: '-16px', top: '4px', width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#00f0ff', boxShadow: '0 0 6px #00f0ff' }} />
-                    <div style={{ fontSize: '10px', color: '#38bdf8', fontFamily: 'var(--font-mono)' }}>{event.time}</div>
-                    <div style={{ fontSize: '12px', fontWeight: 700, color: '#f8fafc', marginTop: '1px' }}>{event.title}</div>
-                    <div style={{ fontSize: '11px', color: '#94a3b8', marginTop: '2px' }}>{event.desc}</div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        </div>
-      </div>
     </div>
   );
 };
