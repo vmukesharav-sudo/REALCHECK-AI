@@ -356,7 +356,9 @@ body {
 }
 
 .image-forensics-grid,
-.video-forensics-grid {
+.video-forensics-grid,
+.audio-forensics-grid,
+.text-forensics-grid {
   display: grid;
   grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
   gap: 20px;
@@ -365,7 +367,9 @@ body {
 
 @media (max-width: 1024px) {
   .image-forensics-grid,
-  .video-forensics-grid {
+  .video-forensics-grid,
+  .audio-forensics-grid,
+  .text-forensics-grid {
     grid-template-columns: 1fr !important;
   }
 }
