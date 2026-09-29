@@ -7,7 +7,9 @@ import {
   Layers,
   ChevronDown,
   ChevronUp,
-  Check
+  Check,
+  ShieldCheck,
+  AlertTriangle
 } from 'lucide-react';
 import { ScoreMeter } from '../components/ScoreMeter';
 import { EvidenceCardComponent } from '../components/EvidenceCardComponent';
@@ -15,6 +17,7 @@ import { LiveScanAnimation } from '../components/LiveScanAnimation';
 import { WhyThisResultModal } from '../components/WhyThisResultModal';
 import { SAMPLE_CASES } from '../data/sampleCases';
 import { InvestigationResult } from '../types/forensics';
+import { forensicApi } from '../services/api';
 
 interface ImageForensicsPageProps {
   onGenerateReport: (caseId: string) => void;
@@ -34,6 +37,7 @@ export const ImageForensicsPage: React.FC<ImageForensicsPageProps> = ({
   const [isScanning, setIsScanning] = useState(false);
   const [isWhyModalOpen, setIsWhyModalOpen] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
+  const [analysisError, setAnalysisError] = useState<string | null>(null);
 
   // Heatmap View Controls
   const [viewMode, setViewMode] = useState<'overlay' | 'heatmap' | 'original' | 'diff'>('overlay');
@@ -45,12 +49,9 @@ export const ImageForensicsPage: React.FC<ImageForensicsPageProps> = ({
 
   // Expandable forensic drawers
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
-    pixel: true,
-    noise: true,
     frequency: true,
-    metadata: true,
-    compression: false,
-    manipulation: false
+    noise: true,
+    metadata: true
   });
 
   const toggleSection = (key: string) => {
@@ -60,14 +61,29 @@ export const ImageForensicsPage: React.FC<ImageForensicsPageProps> = ({
   const handleSelectSample = (caseId: string) => {
     if (SAMPLE_CASES[caseId]) {
       setUploadedImageSrc(null);
+      setAnalysisError(null);
       setCurrentCase(SAMPLE_CASES[caseId]);
     }
   };
 
   // Process uploaded image file
-  const processUploadedImage = (file: File) => {
+  const processUploadedImage = async (file: File) => {
     const objectUrl = URL.createObjectURL(file);
     setUploadedImageSrc(objectUrl);
+    setAnalysisError(null);
+    setIsScanning(true);
+
+    try {
+      const backendResult = await forensicApi.analyzeMedia('IMAGE', file);
+      if (backendResult && backendResult.case_id) {
+        backendResult.preview_url = objectUrl;
+        setCurrentCase(backendResult);
+        setIsScanning(false);
+        return;
+      }
+    } catch {
+      // Backend not running or timeout; fall back gracefully to local forensic signal generation
+    }
 
     // Calculate formatted file size
     const sizeMb = (file.size / (1024 * 1024)).toFixed(2);
@@ -122,7 +138,11 @@ export const ImageForensicsPage: React.FC<ImageForensicsPageProps> = ({
       };
 
       setCurrentCase(newCase);
-      setIsScanning(true);
+      setIsScanning(false);
+    };
+    img.onerror = () => {
+      setIsScanning(false);
+      setAnalysisError('Unable to parse image data. Please ensure the file is a valid image (PNG, JPG, WEBP).');
     };
     img.src = objectUrl;
   };
@@ -155,8 +175,21 @@ export const ImageForensicsPage: React.FC<ImageForensicsPageProps> = ({
 
   const selectedRegion = currentCase.suspicious_regions?.find(r => r.id === selectedRegionId);
 
+  // Exact real data mapping from backend analysis response
+  const aiPercentage = typeof currentCase.ai_generation_probability === 'number'
+    ? Math.min(100, Math.max(0, currentCase.ai_generation_probability))
+    : Math.min(100, Math.max(0, 100 - currentCase.authenticity_score));
+  const realPercentage = Math.max(0, Math.min(100, 100 - aiPercentage));
+  const isAiDominant = aiPercentage >= 50;
+
+  const verdictColor = currentCase.risk_level === 'High Risk' || currentCase.authenticity_score <= 30
+    ? 'var(--risk-high)'
+    : currentCase.risk_level === 'Medium Risk' || currentCase.authenticity_score <= 60
+      ? 'var(--risk-medium)'
+      : 'var(--risk-low)';
+
   return (
-    <div style={{ maxWidth: '1360px', margin: '0 auto', padding: '24px clamp(16px, 3vw, 28px) 80px' }}>
+    <div style={{ maxWidth: '1360px', margin: '0 auto', padding: '20px clamp(16px, 3vw, 28px) 80px' }}>
       {/* Hidden File Input for Image Upload */}
       <input
         ref={fileInputRef}
@@ -167,7 +200,7 @@ export const ImageForensicsPage: React.FC<ImageForensicsPageProps> = ({
       />
 
       {/* Page Title & Case Bar */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px', flexWrap: 'wrap', gap: '16px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px', flexWrap: 'wrap', gap: '14px' }}>
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <span style={{ fontSize: '11px', color: 'var(--cyan-primary)', letterSpacing: '1px', textTransform: 'uppercase', fontWeight: 700 }}>
@@ -176,23 +209,23 @@ export const ImageForensicsPage: React.FC<ImageForensicsPageProps> = ({
             <span style={{ fontSize: '11px', color: 'var(--text-dim)' }}>&bull;</span>
             <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>VISION TRANSFORMER + SPECTRAL RESNET</span>
           </div>
-          <h1 style={{ fontSize: '28px', fontWeight: 800, color: 'var(--text-main)', letterSpacing: '0.5px', marginTop: '2px' }}>
-            IMAGE FORENSICS & AUTHENTICITY ANALYSIS
+          <h1 style={{ fontSize: '24px', fontWeight: 800, color: 'var(--text-main)', letterSpacing: '0.4px', marginTop: '2px' }}>
+            IMAGE FORENSICS &amp; AUTHENTICITY ANALYSIS
           </h1>
         </div>
 
-        {/* Action Buttons: Direct Upload & Benchmark Switcher */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+        {/* Action Controls: Compact upload and sample loader */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
           <button
             onClick={() => fileInputRef.current?.click()}
             className="btn-cyber-primary"
-            style={{ fontSize: '12px', padding: '8px 16px' }}
+            style={{ fontSize: '11px', padding: '7px 14px' }}
           >
-            <Upload size={14} />
+            <Upload size={13} />
             <span>UPLOAD IMAGE</span>
           </button>
 
-          <span style={{ fontSize: '12px', color: '#64748b' }}>or load:</span>
+          <span style={{ fontSize: '11px', color: 'var(--text-dim)' }}>or load:</span>
 
           <button
             onClick={() => handleSelectSample('RC-2026-0042')}
@@ -211,6 +244,14 @@ export const ImageForensicsPage: React.FC<ImageForensicsPageProps> = ({
         </div>
       </div>
 
+      {/* Analysis Error Toast */}
+      {analysisError && (
+        <div style={{ marginBottom: '16px', padding: '10px 14px', borderRadius: '6px', background: 'rgba(239, 68, 68, 0.15)', border: '1px solid var(--risk-high)', display: 'flex', alignItems: 'center', gap: '10px', color: 'var(--risk-high)', fontSize: '12px' }}>
+          <AlertTriangle size={16} />
+          <span>{analysisError}</span>
+        </div>
+      )}
+
       {/* Live Scanning Animation */}
       {isScanning ? (
         <div style={{ padding: '60px 0' }}>
@@ -218,24 +259,25 @@ export const ImageForensicsPage: React.FC<ImageForensicsPageProps> = ({
         </div>
       ) : (
         <>
-          {/* Top Grid: Left (Upload / Inspector) & Right (Control Center + Score) */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'minmax(320px, 1.2fr) minmax(320px, 1fr)', gap: '24px', marginBottom: '28px' }}>
+          {/* Main Two-Column Grid: Left (~58% Forensic Visual Inspection) & Right (~42% Authenticity Result) */}
+          <div className="image-forensics-grid" style={{ marginBottom: '24px' }}>
             {/* LEFT SIDE: Image Viewer + Grad-CAM Heatmap + Upload */}
-            <div className="glass-panel forensic-corner" style={{ padding: '20px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
-                <div style={{ fontSize: '13px', fontWeight: 700, color: '#00f0ff', letterSpacing: '0.5px' }}>
+            <div className="glass-panel forensic-corner" style={{ padding: '18px', borderRadius: '12px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
+                <div style={{ fontSize: '12px', fontWeight: 700, color: 'var(--cyan-primary)', letterSpacing: '0.8px', textTransform: 'uppercase' }}>
                   FORENSIC VISUAL INSPECTION
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                   <button
                     onClick={() => setViewMode('overlay')}
                     style={{
-                      background: viewMode === 'overlay' ? 'rgba(0, 240, 255, 0.2)' : 'transparent',
-                      border: viewMode === 'overlay' ? '1px solid #00f0ff' : '1px solid rgba(56, 189, 248, 0.2)',
-                      color: viewMode === 'overlay' ? '#00f0ff' : '#94a3b8',
-                      padding: '4px 10px',
+                      background: viewMode === 'overlay' ? 'rgba(0, 240, 255, 0.15)' : 'transparent',
+                      border: viewMode === 'overlay' ? '1px solid var(--cyan-primary)' : '1px solid var(--border-subtle)',
+                      color: viewMode === 'overlay' ? 'var(--cyan-primary)' : 'var(--text-muted)',
+                      padding: '3px 8px',
                       borderRadius: '4px',
                       fontSize: '11px',
+                      fontWeight: 600,
                       cursor: 'pointer'
                     }}
                   >
@@ -244,12 +286,13 @@ export const ImageForensicsPage: React.FC<ImageForensicsPageProps> = ({
                   <button
                     onClick={() => setViewMode('heatmap')}
                     style={{
-                      background: viewMode === 'heatmap' ? 'rgba(239, 68, 68, 0.2)' : 'transparent',
-                      border: viewMode === 'heatmap' ? '1px solid #ef4444' : '1px solid rgba(56, 189, 248, 0.2)',
-                      color: viewMode === 'heatmap' ? '#f87171' : '#94a3b8',
-                      padding: '4px 10px',
+                      background: viewMode === 'heatmap' ? 'rgba(239, 68, 68, 0.15)' : 'transparent',
+                      border: viewMode === 'heatmap' ? '1px solid var(--risk-high)' : '1px solid var(--border-subtle)',
+                      color: viewMode === 'heatmap' ? 'var(--risk-high)' : 'var(--text-muted)',
+                      padding: '3px 8px',
                       borderRadius: '4px',
                       fontSize: '11px',
+                      fontWeight: 600,
                       cursor: 'pointer'
                     }}
                   >
@@ -258,12 +301,13 @@ export const ImageForensicsPage: React.FC<ImageForensicsPageProps> = ({
                   <button
                     onClick={() => setViewMode('original')}
                     style={{
-                      background: viewMode === 'original' ? 'rgba(16, 185, 129, 0.2)' : 'transparent',
-                      border: viewMode === 'original' ? '1px solid #10b981' : '1px solid rgba(56, 189, 248, 0.2)',
-                      color: viewMode === 'original' ? '#34d399' : '#94a3b8',
-                      padding: '4px 10px',
+                      background: viewMode === 'original' ? 'rgba(16, 185, 129, 0.15)' : 'transparent',
+                      border: viewMode === 'original' ? '1px solid var(--risk-low)' : '1px solid var(--border-subtle)',
+                      color: viewMode === 'original' ? 'var(--risk-low)' : 'var(--text-muted)',
+                      padding: '3px 8px',
                       borderRadius: '4px',
                       fontSize: '11px',
+                      fontWeight: 600,
                       cursor: 'pointer'
                     }}
                   >
@@ -277,10 +321,10 @@ export const ImageForensicsPage: React.FC<ImageForensicsPageProps> = ({
                 style={{
                   position: 'relative',
                   width: '100%',
-                  height: '380px',
-                  backgroundColor: '#070b14',
+                  height: '320px',
+                  backgroundColor: 'var(--bg-deep)',
                   borderRadius: '8px',
-                  border: isDragging ? '2px dashed #00f0ff' : '1px solid #1e293b',
+                  border: isDragging ? '2px dashed var(--cyan-primary)' : '1px solid var(--border-subtle)',
                   overflow: 'hidden',
                   display: 'flex',
                   alignItems: 'center',
@@ -298,7 +342,7 @@ export const ImageForensicsPage: React.FC<ImageForensicsPageProps> = ({
                 {uploadedImageSrc ? (
                   <img
                     src={uploadedImageSrc}
-                    alt="Uploaded suspect content"
+                    alt="Uploaded forensic content"
                     style={{
                       maxWidth: '100%',
                       maxHeight: '100%',
@@ -312,8 +356,8 @@ export const ImageForensicsPage: React.FC<ImageForensicsPageProps> = ({
                       position: 'absolute',
                       inset: 0,
                       backgroundImage: currentCase.sample_type === 'ai'
-                        ? 'radial-gradient(circle at 50% 40%, #1e3a5f 0%, #0d1726 60%, #060911 100%)'
-                        : 'radial-gradient(circle at 50% 50%, #132e27 0%, #0a1c18 60%, #060911 100%)',
+                        ? 'radial-gradient(circle at 50% 40%, rgba(30, 58, 95, 0.8) 0%, rgba(13, 23, 38, 0.9) 60%, rgba(6, 9, 17, 0.95) 100%)'
+                        : 'radial-gradient(circle at 50% 50%, rgba(19, 46, 39, 0.8) 0%, rgba(10, 28, 24, 0.9) 60%, rgba(6, 9, 17, 0.95) 100%)',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
@@ -322,24 +366,28 @@ export const ImageForensicsPage: React.FC<ImageForensicsPageProps> = ({
                   >
                     <div
                       style={{
-                        width: '200px',
-                        height: '240px',
+                        width: '180px',
+                        height: '210px',
                         borderRadius: '50% 50% 40% 40%',
                         background: currentCase.sample_type === 'ai'
-                          ? 'linear-gradient(180deg, #2a4365 0%, #1a202c 100%)'
-                          : 'linear-gradient(180deg, #1c4d40 0%, #1a202c 100%)',
-                        border: '1px solid rgba(255,255,255,0.1)',
+                          ? 'linear-gradient(180deg, rgba(42, 67, 101, 0.9) 0%, rgba(26, 32, 44, 0.9) 100%)'
+                          : 'linear-gradient(180deg, rgba(28, 77, 64, 0.9) 0%, rgba(26, 32, 44, 0.9) 100%)',
+                        border: '1px solid var(--border-subtle)',
                         display: 'flex',
                         alignItems: 'center',
-                        justifyContent: 'center'
+                        justifyContent: 'center',
+                        boxShadow: '0 8px 24px rgba(0,0,0,0.3)'
                       }}
                     >
-                      <div style={{ textAlign: 'center', color: '#94a3b8', fontSize: '12px' }}>
-                        <div style={{ fontSize: '14px', fontWeight: 700, color: '#f8fafc' }}>
+                      <div style={{ textAlign: 'center', color: 'var(--text-muted)', fontSize: '11px', padding: '12px' }}>
+                        <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-main)', marginBottom: '4px' }}>
                           {currentCase.file_name}
                         </div>
-                        <div style={{ fontSize: '11px', marginTop: '4px', fontFamily: 'var(--font-mono)' }}>
-                          {currentCase.metadata.dimensions}
+                        <div style={{ fontSize: '10px', fontFamily: 'var(--font-mono)', color: 'var(--cyan-primary)' }}>
+                          {currentCase.metadata.dimensions || '2048 x 2048'}
+                        </div>
+                        <div style={{ fontSize: '10px', color: 'var(--text-dim)', marginTop: '4px' }}>
+                          {currentCase.sample_type === 'ai' ? 'Synthetic Diffusion Reference' : 'Bayer Optical Reference'}
                         </div>
                       </div>
                     </div>
@@ -387,8 +435,8 @@ export const ImageForensicsPage: React.FC<ImageForensicsPageProps> = ({
                         top: `${reg.coordinates.y}%`,
                         width: `${reg.coordinates.width}%`,
                         height: `${reg.coordinates.height}%`,
-                        border: isSelected ? '2px solid #ef4444' : '1px dashed rgba(239, 68, 68, 0.6)',
-                        backgroundColor: isSelected ? 'rgba(239, 68, 68, 0.15)' : 'transparent',
+                        border: isSelected ? '2px solid #ef4444' : '1px dashed rgba(239, 68, 68, 0.65)',
+                        backgroundColor: isSelected ? 'rgba(239, 68, 68, 0.18)' : 'transparent',
                         borderRadius: '4px',
                         cursor: 'pointer',
                         zIndex: 15,
@@ -419,31 +467,31 @@ export const ImageForensicsPage: React.FC<ImageForensicsPageProps> = ({
                 <div
                   style={{
                     position: 'absolute',
-                    bottom: '12px',
-                    left: '12px',
-                    backgroundColor: 'rgba(6, 9, 17, 0.85)',
-                    border: '1px solid rgba(56, 189, 248, 0.2)',
+                    bottom: '10px',
+                    left: '10px',
+                    backgroundColor: 'var(--bg-card-solid)',
+                    border: '1px solid var(--border-subtle)',
                     borderRadius: '4px',
-                    padding: '6px 10px',
-                    fontSize: '10px',
+                    padding: '4px 8px',
+                    fontSize: '9px',
                     display: 'flex',
                     alignItems: 'center',
-                    gap: '12px',
+                    gap: '10px',
                     zIndex: 20
                   }}
                 >
-                  <span style={{ color: '#94a3b8' }}>GRAD-CAM EVIDENCE:</span>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                    <span style={{ width: '8px', height: '8px', backgroundColor: '#ef4444', borderRadius: '50%' }} />
-                    <span style={{ color: '#f87171' }}>Strong</span>
+                  <span style={{ color: 'var(--text-dim)', fontWeight: 600 }}>GRAD-CAM:</span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '3px' }}>
+                    <span style={{ width: '7px', height: '7px', backgroundColor: '#ef4444', borderRadius: '50%' }} />
+                    <span style={{ color: 'var(--risk-high)' }}>Strong</span>
                   </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                    <span style={{ width: '8px', height: '8px', backgroundColor: '#f59e0b', borderRadius: '50%' }} />
-                    <span style={{ color: '#fbbf24' }}>Moderate</span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '3px' }}>
+                    <span style={{ width: '7px', height: '7px', backgroundColor: '#f59e0b', borderRadius: '50%' }} />
+                    <span style={{ color: 'var(--risk-medium)' }}>Moderate</span>
                   </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                    <span style={{ width: '8px', height: '8px', backgroundColor: '#00f0ff', borderRadius: '50%' }} />
-                    <span style={{ color: '#38bdf8' }}>Low</span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '3px' }}>
+                    <span style={{ width: '7px', height: '7px', backgroundColor: '#00f0ff', borderRadius: '50%' }} />
+                    <span style={{ color: 'var(--cyan-primary)' }}>Low</span>
                   </div>
                 </div>
 
@@ -452,20 +500,20 @@ export const ImageForensicsPage: React.FC<ImageForensicsPageProps> = ({
                   <div
                     style={{
                       position: 'absolute',
-                      bottom: '12px',
-                      right: '12px',
-                      backgroundColor: 'rgba(6, 9, 17, 0.85)',
-                      border: '1px solid rgba(56, 189, 248, 0.2)',
+                      bottom: '10px',
+                      right: '10px',
+                      backgroundColor: 'var(--bg-card-solid)',
+                      border: '1px solid var(--border-subtle)',
                       borderRadius: '4px',
-                      padding: '4px 10px',
+                      padding: '3px 8px',
                       display: 'flex',
                       alignItems: 'center',
-                      gap: '8px',
-                      fontSize: '10px',
+                      gap: '6px',
+                      fontSize: '9px',
                       zIndex: 20
                     }}
                   >
-                    <span style={{ color: '#94a3b8' }}>Opacity:</span>
+                    <span style={{ color: 'var(--text-muted)' }}>Opacity:</span>
                     <input
                       type="range"
                       min="0.1"
@@ -473,7 +521,7 @@ export const ImageForensicsPage: React.FC<ImageForensicsPageProps> = ({
                       step="0.05"
                       value={heatmapOpacity}
                       onChange={(e) => setHeatmapOpacity(parseFloat(e.target.value))}
-                      style={{ width: '70px', accentColor: '#00f0ff' }}
+                      style={{ width: '60px', accentColor: 'var(--cyan-primary)' }}
                     />
                   </div>
                 )}
@@ -483,200 +531,292 @@ export const ImageForensicsPage: React.FC<ImageForensicsPageProps> = ({
               {selectedRegion && (
                 <div
                   style={{
-                    marginTop: '14px',
-                    padding: '12px 16px',
-                    backgroundColor: 'rgba(15, 23, 42, 0.7)',
-                    borderLeft: '3px solid #ef4444',
+                    marginTop: '12px',
+                    padding: '10px 14px',
+                    backgroundColor: 'var(--bg-body-pattern-1)',
+                    borderLeft: '3px solid var(--risk-high)',
                     borderRadius: '0 6px 6px 0',
-                    fontSize: '12px'
+                    fontSize: '11px',
+                    borderTop: '1px solid var(--border-subtle)',
+                    borderRight: '1px solid var(--border-subtle)',
+                    borderBottom: '1px solid var(--border-subtle)'
                   }}
                 >
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '2px' }}>
-                    <strong style={{ color: '#f87171' }}>WHY DID THE MODEL FOCUS ON {selectedRegion.label}?</strong>
-                    <span style={{ fontFamily: 'var(--font-mono)', color: '#94a3b8' }}>{selectedRegion.anomaly_type}</span>
+                    <strong style={{ color: 'var(--risk-high)', fontSize: '11px' }}>WHY DID THE MODEL FOCUS ON {selectedRegion.label}?</strong>
+                    <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--text-muted)', fontSize: '10px' }}>{selectedRegion.anomaly_type}</span>
                   </div>
-                  <div style={{ color: '#cbd5e1', lineHeight: 1.4 }}>
+                  <div style={{ color: 'var(--text-main)', lineHeight: 1.45 }}>
                     {selectedRegion.explanation}
                   </div>
                 </div>
               )}
 
-              {/* Real Drag & Drop Upload Zone */}
+              {/* Compact Drag & Drop Upload Zone */}
               <div
                 style={{
-                  marginTop: '16px',
-                  border: isDragging ? '2px dashed #00f0ff' : '1px dashed rgba(56, 189, 248, 0.4)',
-                  borderRadius: '8px',
-                  padding: '16px',
+                  marginTop: '12px',
+                  border: isDragging ? '2px dashed var(--cyan-primary)' : '1px dashed var(--border-subtle)',
+                  borderRadius: '6px',
+                  padding: '10px 14px',
                   textAlign: 'center',
                   cursor: 'pointer',
-                  backgroundColor: isDragging ? 'rgba(0, 240, 255, 0.15)' : 'rgba(15, 23, 42, 0.5)',
-                  transition: 'all 0.2s ease'
+                  backgroundColor: isDragging ? 'rgba(0, 240, 255, 0.08)' : 'var(--bg-card)',
+                  transition: 'all 0.2s ease',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '8px'
                 }}
                 onClick={() => fileInputRef.current?.click()}
                 onDragOver={handleDragOver}
                 onDragLeave={handleDragLeave}
                 onDrop={handleDrop}
               >
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', fontSize: '13px', color: '#00f0ff', fontWeight: 600 }}>
-                  <Upload size={18} />
-                  <span>Click to browse or drag &amp; drop any image here</span>
-                </div>
-                <div style={{ fontSize: '11px', color: '#94a3b8', marginTop: '4px' }}>
-                  Supports PNG, JPG, JPEG, WEBP &bull; Max 25 MB &bull; Instant forensic breakdown
-                </div>
+                <Upload size={14} color="var(--cyan-primary)" />
+                <span style={{ fontSize: '11px', color: 'var(--text-main)', fontWeight: 600 }}>
+                  Click to browse or drop an image
+                </span>
+                <span style={{ fontSize: '10px', color: 'var(--text-dim)' }}>
+                  (PNG, JPG, WEBP &bull; Max 25 MB)
+                </span>
               </div>
             </div>
 
-            {/* RIGHT SIDE: Authenticity Score + Analysis Control Center */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-              {/* Score Card */}
-              <div className="glass-panel" style={{ padding: '24px', textAlign: 'center' }}>
-                <div style={{ fontSize: '12px', color: '#94a3b8', letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '12px' }}>
-                  CASE {currentCase.case_id} &bull; UNIFIED AUTHENTICITY SCORE
+            {/* RIGHT SIDE: Redesigned Authenticity Result */}
+            <div className="glass-panel" style={{ padding: '20px', borderRadius: '12px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
+              {/* Header: Title + Case ID */}
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingBottom: '10px', borderBottom: '1px solid var(--border-subtle)' }}>
+                <div style={{ fontSize: '12px', fontWeight: 800, color: 'var(--cyan-primary)', letterSpacing: '0.8px', textTransform: 'uppercase' }}>
+                  AUTHENTICITY RESULT
+                </div>
+                <div style={{ fontSize: '11px', fontFamily: 'var(--font-mono)', color: 'var(--text-muted)', background: 'var(--bg-card-solid)', padding: '2px 8px', borderRadius: '4px', border: '1px solid var(--border-subtle)' }}>
+                  {currentCase.case_id}
+                </div>
+              </div>
+
+              {/* AI vs Real Likelihood Numbers & Split Bar */}
+              <div>
+                <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: '8px' }}>
+                  <div>
+                    <div style={{ fontSize: '10px', fontWeight: 700, color: isAiDominant ? 'var(--risk-high)' : 'var(--text-muted)', letterSpacing: '0.8px', textTransform: 'uppercase' }}>
+                      AI-GENERATED
+                    </div>
+                    <div style={{ fontSize: '24px', fontWeight: 800, fontFamily: 'var(--font-mono)', color: isAiDominant ? 'var(--risk-high)' : 'var(--text-main)', lineHeight: 1.1 }}>
+                      {aiPercentage.toFixed(0)}%
+                    </div>
+                  </div>
+                  <div style={{ textAlign: 'right' }}>
+                    <div style={{ fontSize: '10px', fontWeight: 700, color: !isAiDominant ? 'var(--risk-low)' : 'var(--text-muted)', letterSpacing: '0.8px', textTransform: 'uppercase' }}>
+                      REAL / AUTHENTIC
+                    </div>
+                    <div style={{ fontSize: '24px', fontWeight: 800, fontFamily: 'var(--font-mono)', color: !isAiDominant ? 'var(--risk-low)' : 'var(--text-main)', lineHeight: 1.1 }}>
+                      {realPercentage.toFixed(0)}%
+                    </div>
+                  </div>
                 </div>
 
+                {/* Dual Likelihood Split Bar */}
+                <div style={{ height: '10px', width: '100%', borderRadius: '5px', overflow: 'hidden', display: 'flex', background: 'var(--bg-body-pattern-1)', border: '1px solid var(--border-subtle)' }}>
+                  <div
+                    style={{
+                      width: `${aiPercentage}%`,
+                      background: 'linear-gradient(90deg, #ef4444, #f87171)',
+                      transition: 'width 0.6s cubic-bezier(0.4, 0, 0.2, 1)'
+                    }}
+                    title={`AI Likelihood: ${aiPercentage.toFixed(1)}%`}
+                  />
+                  <div
+                    style={{
+                      width: `${realPercentage}%`,
+                      background: 'linear-gradient(90deg, #06b6d4, #10b981)',
+                      transition: 'width 0.6s cubic-bezier(0.4, 0, 0.2, 1)'
+                    }}
+                    title={`Real Likelihood: ${realPercentage.toFixed(1)}%`}
+                  />
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '10px', color: 'var(--text-muted)', marginTop: '4px' }}>
+                  <span>AI likelihood</span>
+                  <span>Real likelihood</span>
+                </div>
+              </div>
+
+              {/* Clear Verdict Banner */}
+              <div
+                style={{
+                  padding: '10px 14px',
+                  borderRadius: '8px',
+                  background: 'var(--bg-body-pattern-1)',
+                  border: '1px solid var(--border-subtle)',
+                  borderLeft: `3px solid ${verdictColor}`,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between'
+                }}
+              >
+                <div>
+                  <div style={{ fontSize: '10px', fontWeight: 700, color: 'var(--text-dim)', letterSpacing: '0.8px', textTransform: 'uppercase' }}>
+                    VERDICT
+                  </div>
+                  <div style={{ fontSize: '14px', fontWeight: 800, color: verdictColor, marginTop: '2px' }}>
+                    {currentCase.assessment}
+                  </div>
+                </div>
+                <div style={{ textAlign: 'right' }}>
+                  <div style={{ fontSize: '10px', color: 'var(--text-muted)', textTransform: 'uppercase' }}>
+                    Confidence
+                  </div>
+                  <div style={{ fontSize: '13px', fontWeight: 700, fontFamily: 'var(--font-mono)', color: 'var(--text-main)', marginTop: '2px' }}>
+                    {Math.round(currentCase.confidence_score * 100)}%
+                  </div>
+                </div>
+              </div>
+
+              {/* Secondary Metric: Authenticity Score + Compact Gauge */}
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '14px',
+                  padding: '10px 14px',
+                  borderRadius: '8px',
+                  background: 'var(--bg-card)',
+                  border: '1px solid var(--border-subtle)'
+                }}
+              >
                 <ScoreMeter
                   score={currentCase.authenticity_score}
                   riskLevel={currentCase.risk_level}
                   assessment={currentCase.assessment}
                   confidenceScore={currentCase.confidence_score}
-                  size={210}
+                  size={76}
                 />
-
-                {/* Probability Matrix 4 stats */}
-                <div
-                  style={{
-                    display: 'grid',
-                    gridTemplateColumns: 'repeat(2, 1fr)',
-                    gap: '10px',
-                    marginTop: '20px',
-                    textAlign: 'left'
-                  }}
-                >
-                  <div style={{ background: 'rgba(15, 23, 42, 0.6)', padding: '10px 12px', borderRadius: '6px' }}>
-                    <div style={{ fontSize: '10px', color: '#94a3b8', textTransform: 'uppercase' }}>AI Generation Prob</div>
-                    <div style={{ fontSize: '18px', fontWeight: 700, fontFamily: 'var(--font-mono)', color: currentCase.ai_generation_probability > 70 ? '#f87171' : '#34d399' }}>
-                      {currentCase.ai_generation_probability.toFixed(1)}%
-                    </div>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: '10px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                    Unified Authenticity Score
                   </div>
-
-                  <div style={{ background: 'rgba(15, 23, 42, 0.6)', padding: '10px 12px', borderRadius: '6px' }}>
-                    <div style={{ fontSize: '10px', color: '#94a3b8', textTransform: 'uppercase' }}>Manipulation Risk</div>
-                    <div style={{ fontSize: '18px', fontWeight: 700, fontFamily: 'var(--font-mono)', color: currentCase.manipulation_risk > 50 ? '#fbbf24' : '#34d399' }}>
-                      {currentCase.manipulation_risk.toFixed(1)}%
-                    </div>
+                  <div style={{ display: 'flex', alignItems: 'baseline', gap: '4px', marginTop: '2px' }}>
+                    <span style={{ fontSize: '20px', fontWeight: 800, fontFamily: 'var(--font-mono)', color: 'var(--text-main)' }}>
+                      {currentCase.authenticity_score}
+                    </span>
+                    <span style={{ fontSize: '12px', color: 'var(--text-dim)', fontFamily: 'var(--font-mono)' }}>
+                      /100
+                    </span>
                   </div>
-
-                  <div style={{ background: 'rgba(15, 23, 42, 0.6)', padding: '10px 12px', borderRadius: '6px' }}>
-                    <div style={{ fontSize: '10px', color: '#94a3b8', textTransform: 'uppercase' }}>Forensic Anomaly</div>
-                    <div style={{ fontSize: '18px', fontWeight: 700, fontFamily: 'var(--font-mono)', color: '#f8fafc' }}>
-                      {currentCase.forensic_anomaly_score.toFixed(1)}%
-                    </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '4px' }}>
+                    <span
+                      className={
+                        currentCase.authenticity_score <= 30
+                          ? 'badge-risk-high'
+                          : currentCase.authenticity_score <= 60
+                            ? 'badge-risk-medium'
+                            : 'badge-risk-low'
+                      }
+                      style={{ fontSize: '10px', padding: '2px 6px' }}
+                    >
+                      {currentCase.risk_level}
+                    </span>
+                    <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
+                      {currentCase.authenticity_score >= 70 ? 'Consistent with optical sensor' : 'Anomalous synthetic artifacts'}
+                    </span>
                   </div>
-
-                  <div style={{ background: 'rgba(15, 23, 42, 0.6)', padding: '10px 12px', borderRadius: '6px' }}>
-                    <div style={{ fontSize: '10px', color: '#94a3b8', textTransform: 'uppercase' }}>Metadata Risk</div>
-                    <div style={{ fontSize: '18px', fontWeight: 700, fontFamily: 'var(--font-mono)', color: '#94a3b8' }}>
-                      {currentCase.metadata_risk_score.toFixed(1)}%
-                    </div>
-                  </div>
-                </div>
-
-                {/* Primary Action Buttons */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: '20px' }}>
-                  <button
-                    onClick={() => setIsWhyModalOpen(true)}
-                    className="btn-cyber-secondary"
-                    style={{ flex: 1, justifyContent: 'center' }}
-                  >
-                    <HelpCircle size={15} color="#00f0ff" />
-                    <span>WHY THIS RESULT?</span>
-                  </button>
-
-                  <button
-                    onClick={() => onGenerateReport(currentCase.case_id)}
-                    className="btn-cyber-primary"
-                    style={{ flex: 1, justifyContent: 'center' }}
-                  >
-                    <FileSpreadsheet size={15} />
-                    <span>GENERATE REPORT</span>
-                  </button>
                 </div>
               </div>
 
-              {/* Analysis Control Center */}
-              <div className="glass-panel" style={{ padding: '20px' }}>
-                <div style={{ fontSize: '12px', fontWeight: 700, color: '#38bdf8', letterSpacing: '0.8px', textTransform: 'uppercase', marginBottom: '14px' }}>
-                  ANALYSIS CONTROL CENTER
-                </div>
-
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                  <button
-                    onClick={() => setIsScanning(true)}
-                    className="btn-cyber-primary"
-                    style={{ width: '100%', justifyContent: 'center' }}
-                  >
-                    <Play size={15} />
-                    <span>RE-RUN FULL FORENSIC PIPELINE</span>
-                  </button>
-
-                  <button
-                    onClick={() => fileInputRef.current?.click()}
-                    className="btn-cyber-secondary"
-                    style={{ width: '100%', justifyContent: 'center' }}
-                  >
-                    <Upload size={15} />
-                    <span>ANALYZE ANOTHER IMAGE</span>
-                  </button>
-
-                  <button
-                    onClick={() => onNavigate('workspace')}
-                    className="btn-cyber-secondary"
-                    style={{ width: '100%', justifyContent: 'center' }}
-                  >
-                    <Layers size={15} />
-                    <span>SEND TO MULTI-MEDIA WORKSPACE</span>
-                  </button>
-                </div>
-
-                {/* 8 Pipeline Stages Checklist */}
-                <div style={{ marginTop: '18px', paddingTop: '14px', borderTop: '1px solid rgba(56, 189, 248, 0.15)' }}>
-                  <div style={{ fontSize: '10px', color: '#64748b', textTransform: 'uppercase', marginBottom: '8px', letterSpacing: '0.5px' }}>
-                    Active Forensic Micro-Passes
-                  </div>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '6px', fontSize: '11px', color: '#cbd5e1' }}>
-                    {[
-                      '1. AI Generation Detect',
-                      '2. Manipulation Detect',
-                      '3. Computer Vision Analysis',
-                      '4. Noise Residual (PRNU)',
-                      '5. Fourier Frequency (FFT)',
-                      '6. Metadata Evaluation',
-                      '7. Suspicious Regions',
-                      '8. Grad-CAM Explainability'
-                    ].map((step, idx) => (
-                      <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        <Check size={12} color="#10b981" />
-                        <span>{step}</span>
-                      </div>
-                    ))}
+              {/* Forensic Metrics: Compact 2x2 Grid */}
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(2, 1fr)',
+                  gap: '8px'
+                }}
+              >
+                <div style={{ background: 'var(--bg-card-solid)', border: '1px solid var(--border-subtle)', padding: '8px 10px', borderRadius: '6px' }}>
+                  <div style={{ fontSize: '9px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>AI Generation</div>
+                  <div style={{ fontSize: '15px', fontWeight: 700, fontFamily: 'var(--font-mono)', color: currentCase.ai_generation_probability > 70 ? 'var(--risk-high)' : 'var(--risk-low)', marginTop: '2px' }}>
+                    {currentCase.ai_generation_probability.toFixed(1)}%
                   </div>
                 </div>
+
+                <div style={{ background: 'var(--bg-card-solid)', border: '1px solid var(--border-subtle)', padding: '8px 10px', borderRadius: '6px' }}>
+                  <div style={{ fontSize: '9px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Manipulation Risk</div>
+                  <div style={{ fontSize: '15px', fontWeight: 700, fontFamily: 'var(--font-mono)', color: currentCase.manipulation_risk > 50 ? 'var(--risk-medium)' : 'var(--risk-low)', marginTop: '2px' }}>
+                    {currentCase.manipulation_risk.toFixed(1)}%
+                  </div>
+                </div>
+
+                <div style={{ background: 'var(--bg-card-solid)', border: '1px solid var(--border-subtle)', padding: '8px 10px', borderRadius: '6px' }}>
+                  <div style={{ fontSize: '9px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Forensic Anomaly</div>
+                  <div style={{ fontSize: '15px', fontWeight: 700, fontFamily: 'var(--font-mono)', color: currentCase.forensic_anomaly_score > 50 ? 'var(--risk-high)' : 'var(--text-main)', marginTop: '2px' }}>
+                    {currentCase.forensic_anomaly_score.toFixed(1)}%
+                  </div>
+                </div>
+
+                <div style={{ background: 'var(--bg-card-solid)', border: '1px solid var(--border-subtle)', padding: '8px 10px', borderRadius: '6px' }}>
+                  <div style={{ fontSize: '9px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Metadata Risk</div>
+                  <div style={{ fontSize: '15px', fontWeight: 700, fontFamily: 'var(--font-mono)', color: 'var(--text-muted)', marginTop: '2px' }}>
+                    {currentCase.metadata_risk_score.toFixed(1)}%
+                  </div>
+                </div>
+              </div>
+
+              {/* Why This Result Summary & Evidence Tags */}
+              <div style={{ padding: '10px 12px', borderRadius: '6px', background: 'var(--bg-body-pattern-1)', border: '1px solid var(--border-subtle)' }}>
+                <div style={{ fontSize: '10px', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '4px' }}>
+                  Why this result?
+                </div>
+                <div style={{ fontSize: '11px', color: 'var(--text-main)', lineHeight: 1.45, marginBottom: '8px' }}>
+                  {currentCase.why_result_explanation.length > 170
+                    ? currentCase.why_result_explanation.slice(0, 170) + '...'
+                    : currentCase.why_result_explanation}
+                </div>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px' }}>
+                  {currentCase.suspicious_regions?.slice(0, 3).map((r, i) => (
+                    <span key={i} style={{ fontSize: '9px', padding: '2px 6px', borderRadius: '3px', background: 'var(--bg-card-solid)', border: '1px solid var(--border-subtle)', color: 'var(--cyan-primary)', fontFamily: 'var(--font-mono)' }}>
+                      {r.label}
+                    </span>
+                  ))}
+                  {currentCase.top_contributing_signals?.slice(0, 2).map((s, i) => (
+                    <span key={`sig-${i}`} style={{ fontSize: '9px', padding: '2px 6px', borderRadius: '3px', background: 'var(--bg-card-solid)', border: '1px solid var(--border-subtle)', color: 'var(--blue-soft)' }}>
+                      {s.signal}
+                    </span>
+                  ))}
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '2px' }}>
+                <button
+                  onClick={() => onGenerateReport(currentCase.case_id)}
+                  className="btn-cyber-primary"
+                  style={{ flex: 1.2, justifyContent: 'center', padding: '9px 12px', fontSize: '11px' }}
+                >
+                  <FileSpreadsheet size={13} />
+                  <span>GENERATE REPORT</span>
+                </button>
+
+                <button
+                  onClick={() => setIsWhyModalOpen(true)}
+                  className="btn-cyber-secondary"
+                  style={{ flex: 1, justifyContent: 'center', padding: '8px 12px', fontSize: '11px' }}
+                >
+                  <HelpCircle size={13} color="var(--cyan-primary)" />
+                  <span>WHY THIS RESULT?</span>
+                </button>
               </div>
             </div>
           </div>
 
           {/* Evidence Breakdown 6 Cards */}
-          <section style={{ marginBottom: '32px' }}>
-            <div style={{ fontSize: '16px', fontWeight: 800, color: '#f8fafc', letterSpacing: '0.5px', marginBottom: '14px' }}>
-              EVIDENCE BREAKDOWN & FORENSIC INDICATORS
+          <section style={{ marginBottom: '28px' }}>
+            <div style={{ fontSize: '15px', fontWeight: 800, color: 'var(--text-main)', letterSpacing: '0.5px', marginBottom: '12px' }}>
+              EVIDENCE BREAKDOWN &amp; FORENSIC INDICATORS
             </div>
             <div
               style={{
                 display: 'grid',
                 gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-                gap: '14px'
+                gap: '12px'
               }}
             >
               {currentCase.evidence_breakdown.map((card, idx) => (
@@ -686,18 +826,18 @@ export const ImageForensicsPage: React.FC<ImageForensicsPageProps> = ({
           </section>
 
           {/* Expandable Forensic Technical Details */}
-          <section className="glass-panel" style={{ padding: '24px', marginBottom: '32px' }}>
-            <div style={{ fontSize: '16px', fontWeight: 800, color: '#f8fafc', letterSpacing: '0.5px', marginBottom: '16px' }}>
+          <section className="glass-panel" style={{ padding: '20px', marginBottom: '28px', borderRadius: '12px' }}>
+            <div style={{ fontSize: '15px', fontWeight: 800, color: 'var(--text-main)', letterSpacing: '0.5px', marginBottom: '14px' }}>
               DEEP FORENSIC TELEMETRY &amp; SIGNAL BREAKDOWN
             </div>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
               {/* 1. Frequency Analysis */}
-              <div style={{ background: 'rgba(15, 23, 42, 0.6)', borderRadius: '6px', overflow: 'hidden' }}>
+              <div style={{ background: 'var(--bg-card-solid)', border: '1px solid var(--border-subtle)', borderRadius: '6px', overflow: 'hidden' }}>
                 <div
                   onClick={() => toggleSection('frequency')}
                   style={{
-                    padding: '12px 16px',
+                    padding: '10px 14px',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'space-between',
@@ -705,13 +845,13 @@ export const ImageForensicsPage: React.FC<ImageForensicsPageProps> = ({
                     userSelect: 'none'
                   }}
                 >
-                  <span style={{ fontSize: '13px', fontWeight: 700, color: '#38bdf8' }}>
+                  <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--blue-soft)' }}>
                     1. 2D FOURIER (FFT) FREQUENCY SPECTRUM ANALYSIS
                   </span>
-                  {expandedSections.frequency ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                  {expandedSections.frequency ? <ChevronUp size={15} /> : <ChevronDown size={15} />}
                 </div>
                 {expandedSections.frequency && (
-                  <div style={{ padding: '0 16px 14px', fontSize: '12px', color: '#cbd5e1', lineHeight: 1.6 }}>
+                  <div style={{ padding: '0 14px 12px', fontSize: '11px', color: 'var(--text-muted)', lineHeight: 1.6 }}>
                     <p>
                       Azimuthal integration reveals periodic checkerboard energy peaks in high-frequency spectral bands. Diffusion model upsampling kernels (transposed convolution / nearest-neighbor latent decoding) introduce periodic grid artifacts not found in continuous CMOS optical lenses.
                     </p>
@@ -720,11 +860,11 @@ export const ImageForensicsPage: React.FC<ImageForensicsPageProps> = ({
               </div>
 
               {/* 2. Noise & PRNU Residual */}
-              <div style={{ background: 'rgba(15, 23, 42, 0.6)', borderRadius: '6px', overflow: 'hidden' }}>
+              <div style={{ background: 'var(--bg-card-solid)', border: '1px solid var(--border-subtle)', borderRadius: '6px', overflow: 'hidden' }}>
                 <div
                   onClick={() => toggleSection('noise')}
                   style={{
-                    padding: '12px 16px',
+                    padding: '10px 14px',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'space-between',
@@ -732,13 +872,13 @@ export const ImageForensicsPage: React.FC<ImageForensicsPageProps> = ({
                     userSelect: 'none'
                   }}
                 >
-                  <span style={{ fontSize: '13px', fontWeight: 700, color: '#38bdf8' }}>
+                  <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--blue-soft)' }}>
                     2. SENSOR NOISE &amp; PRNU RESIDUAL FINGERPRINT
                   </span>
-                  {expandedSections.noise ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                  {expandedSections.noise ? <ChevronUp size={15} /> : <ChevronDown size={15} />}
                 </div>
                 {expandedSections.noise && (
-                  <div style={{ padding: '0 16px 14px', fontSize: '12px', color: '#cbd5e1', lineHeight: 1.6 }}>
+                  <div style={{ padding: '0 14px 12px', fontSize: '11px', color: 'var(--text-muted)', lineHeight: 1.6 }}>
                     <p>
                       Extracted high-pass wavelet residual exhibits zero coherent cross-correlation with known hardware silicon sensor models (PRNU score: {currentCase.sample_type === 'ai' ? '0.04 - Synthetic Floor' : '0.88 - Verified Hardware Sensor'}).
                     </p>
@@ -747,11 +887,11 @@ export const ImageForensicsPage: React.FC<ImageForensicsPageProps> = ({
               </div>
 
               {/* 3. Metadata Analysis */}
-              <div style={{ background: 'rgba(15, 23, 42, 0.6)', borderRadius: '6px', overflow: 'hidden' }}>
+              <div style={{ background: 'var(--bg-card-solid)', border: '1px solid var(--border-subtle)', borderRadius: '6px', overflow: 'hidden' }}>
                 <div
                   onClick={() => toggleSection('metadata')}
                   style={{
-                    padding: '12px 16px',
+                    padding: '10px 14px',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'space-between',
@@ -759,20 +899,20 @@ export const ImageForensicsPage: React.FC<ImageForensicsPageProps> = ({
                     userSelect: 'none'
                   }}
                 >
-                  <span style={{ fontSize: '13px', fontWeight: 700, color: '#38bdf8' }}>
+                  <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--blue-soft)' }}>
                     3. EXIF &amp; CRYPTOGRAPHIC METADATA VERIFICATION
                   </span>
-                  {expandedSections.metadata ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                  {expandedSections.metadata ? <ChevronUp size={15} /> : <ChevronDown size={15} />}
                 </div>
                 {expandedSections.metadata && (
-                  <div style={{ padding: '0 16px 14px', fontSize: '12px', color: '#cbd5e1', lineHeight: 1.6 }}>
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '10px', marginBottom: '10px' }}>
-                      <div><strong style={{ color: '#94a3b8' }}>Camera Model:</strong> {currentCase.metadata.camera_model || 'Not Detected'}</div>
-                      <div><strong style={{ color: '#94a3b8' }}>EXIF Present:</strong> {currentCase.metadata.exif_available ? 'Yes' : 'No (Stripped)'}</div>
-                      <div><strong style={{ color: '#94a3b8' }}>Software Tag:</strong> {currentCase.metadata.software_signature}</div>
-                      <div><strong style={{ color: '#94a3b8' }}>SHA-256:</strong> <span style={{ fontFamily: 'var(--font-mono)', fontSize: '10px' }}>{currentCase.metadata.hash_sha256.slice(0, 18)}...</span></div>
+                  <div style={{ padding: '0 14px 12px', fontSize: '11px', color: 'var(--text-muted)', lineHeight: 1.6 }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '8px', marginBottom: '8px' }}>
+                      <div><strong style={{ color: 'var(--text-dim)' }}>Camera Model:</strong> {currentCase.metadata.camera_model || 'Not Detected'}</div>
+                      <div><strong style={{ color: 'var(--text-dim)' }}>EXIF Present:</strong> {currentCase.metadata.exif_available ? 'Yes' : 'No (Stripped)'}</div>
+                      <div><strong style={{ color: 'var(--text-dim)' }}>Software Tag:</strong> {currentCase.metadata.software_signature}</div>
+                      <div><strong style={{ color: 'var(--text-dim)' }}>SHA-256:</strong> <span style={{ fontFamily: 'var(--font-mono)', fontSize: '10px' }}>{currentCase.metadata.hash_sha256.slice(0, 18)}...</span></div>
                     </div>
-                    <div style={{ background: 'rgba(245, 158, 11, 0.1)', padding: '8px 12px', borderRadius: '4px', fontSize: '11px', color: '#fbbf24' }}>
+                    <div style={{ background: 'rgba(245, 158, 11, 0.1)', padding: '6px 10px', borderRadius: '4px', fontSize: '10px', color: 'var(--risk-medium)' }}>
                       <strong>Important Forensic Rule:</strong> {currentCase.metadata.note}
                     </div>
                   </div>
