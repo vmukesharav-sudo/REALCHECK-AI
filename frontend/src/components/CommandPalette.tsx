@@ -2,13 +2,13 @@ import { forensicApi } from '../services/api';
 import { SAMPLE_CASES } from '../data/sampleCases';
 import { InvestigationResult } from '../types/forensics';
 import React, { useState, useEffect } from 'react';
-import { Search, X, ArrowRight, ShieldAlert, FileText, Image, Video, Mic, Sparkles } from 'lucide-react';
+import { Search, X, ArrowRight, ShieldAlert, FileText, Image as ImageIcon, Video, Mic, Sparkles } from 'lucide-react';
 
 interface CommandPaletteProps {
   isOpen: boolean;
   onClose: () => void;
   onSelectCase: (caseId: string) => void;
-  onNavigate: (tab: string) => void;
+  onNavigate: (tab: string, caseId?: string) => void;
 }
 
 export const CommandPalette: React.FC<CommandPaletteProps> = ({
@@ -49,20 +49,23 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
   if (!isOpen) return null;
 
   const quickActions = [
-    { label: 'Show High-Risk Videos (Deepfake Press Statement)', icon: Video, action: () => { onNavigate('video'); onSelectCase('RC-2026-0043'); onClose(); } },
-    { label: 'Find Suspicious Image Regions (Grad-CAM Diffusion)', icon: Image, action: () => { onNavigate('image'); onSelectCase('RC-2026-0042'); onClose(); } },
-    { label: 'Open Case RC-2026-0044 (AI Voice Clone Speech)', icon: Mic, action: () => { onNavigate('audio'); onSelectCase('RC-2026-0044'); onClose(); } },
-    { label: 'Analyze Text Stylometry (RC-2026-0045 Memo)', icon: FileText, action: () => { onNavigate('text'); onSelectCase('RC-2026-0045'); onClose(); } },
+    { label: 'Show High-Risk Videos (Deepfake Press Statement)', icon: Video, action: () => { onNavigate('video', 'RC-2026-0043'); onSelectCase('RC-2026-0043'); onClose(); } },
+    { label: 'Find Suspicious Image Regions (Grad-CAM Diffusion)', icon: ImageIcon, action: () => { onNavigate('image', 'RC-2026-0042'); onSelectCase('RC-2026-0042'); onClose(); } },
+    { label: 'Open Case RC-2026-0044 (AI Voice Clone Speech)', icon: Mic, action: () => { onNavigate('audio', 'RC-2026-0044'); onSelectCase('RC-2026-0044'); onClose(); } },
+    { label: 'Analyze Text Stylometry (RC-2026-0045 Memo)', icon: FileText, action: () => { onNavigate('text', 'RC-2026-0045'); onSelectCase('RC-2026-0045'); onClose(); } },
     { label: 'Launch Cross-Media Evidence Workspace', icon: ShieldAlert, action: () => { onNavigate('workspace'); onClose(); } },
     { label: 'View Centralized Explainable AI Hub', icon: Sparkles, action: () => { onNavigate('ai-hub'); onClose(); } },
   ];
 
-  const filteredCases = allCases.filter(c => 
-    c.case_id.toLowerCase().includes(query.toLowerCase()) ||
-    c.file_name.toLowerCase().includes(query.toLowerCase()) ||
-    c.assessment.toLowerCase().includes(query.toLowerCase()) ||
-    c.media_type.toLowerCase().includes(query.toLowerCase())
-  );
+  const filteredCases = allCases.filter(c => {
+    if (!c) return false;
+    const q = query.toLowerCase();
+    const id = String(c.case_id || '').toLowerCase();
+    const name = String(c.file_name || '').toLowerCase();
+    const assess = String(c.assessment || '').toLowerCase();
+    const type = String(c.media_type || '').toLowerCase();
+    return id.includes(q) || name.includes(q) || assess.includes(q) || type.includes(q);
+  });
 
   return (
     <div
@@ -199,8 +202,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
                     <div
                       key={c.case_id}
                       onClick={() => {
-                        onSelectCase(c.case_id);
-                        onNavigate(c.media_type.toLowerCase());
+                        onNavigate(String(c.media_type || 'overview').toLowerCase(), c.case_id || '');
                         onClose();
                       }}
                       style={{

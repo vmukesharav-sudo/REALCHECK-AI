@@ -1,5 +1,5 @@
 import uuid
-from sqlalchemy import Column, String, DateTime
+from sqlalchemy import Column, String, DateTime, Boolean
 from sqlalchemy.sql import func
 from .base import Base
 
@@ -11,5 +11,9 @@ class User(Base):
     hashed_password = Column(String, nullable=False)
     role = Column(String, default="USER")
     
+    email_verified = Column(Boolean, default=False)
+    verification_token_hash = Column(String, nullable=True)
+    verification_token_expires_at = Column(DateTime(timezone=True), nullable=True)
+
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())

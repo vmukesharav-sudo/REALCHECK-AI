@@ -18,7 +18,7 @@ import { InvestigationResult } from '../types/forensics';
 
 interface TextStylometryPageProps {
   onGenerateReport: (caseId: string) => void;
-  onNavigate: (tab: string) => void;
+  onNavigate: (tab: string, caseId?: string) => void;
   initialCaseId?: string;
 }
 
@@ -62,6 +62,7 @@ export const TextStylometryPage: React.FC<TextStylometryPageProps> = ({
     try {
       const res = await forensicApi.analyzeMedia('TEXT', text);
       setCurrentCase(res);
+      onNavigate('text', res.case_id);
     } catch {
       // Fallback local heuristic assessment if API is unavailable
       const words = text.split(/\s+/).filter(Boolean);
@@ -309,7 +310,7 @@ export const TextStylometryPage: React.FC<TextStylometryPageProps> = ({
                   className="btn-cyber-primary"
                   style={{ fontSize: '11px', padding: '6px 14px' }}
                 >
-                  <Play size={13} />
+                  <Play size={13} fill="currentColor" />
                   <span>ANALYZE STYLOMETRY</span>
                 </button>
               </div>
