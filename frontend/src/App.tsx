@@ -22,6 +22,7 @@ import { SettingsPage } from './pages/SettingsPage';
 import { InvestigationProvider, useInvestigation } from './contexts/InvestigationContext';
 import { AuthProvider } from './contexts/AuthContext';
 import { ProtectedRoute } from './components/ProtectedRoute';
+import { ForensicBackground } from './components/ForensicBackground';
 
 function AppLayout() {
   const location = useLocation();
@@ -63,7 +64,8 @@ function AppLayout() {
   };
 
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', backgroundColor: 'var(--bg-deep)' }}>
+    <div style={{ minHeight: '100vh', display: 'flex', backgroundColor: 'var(--bg-deep)', position: 'relative' }}>
+      <ForensicBackground />
       <Sidebar 
         currentTab={currentTab} 
         onTabChange={handleNavigate}
@@ -78,6 +80,8 @@ function AppLayout() {
           onOpenSearch={() => setIsSearchOpen(true)}
           activeCaseId={activeCaseId}
           setMobileMenuOpen={setMobileMenuOpen}
+          onSelectCase={handleSelectCase}
+          onNavigate={handleNavigate}
         />
 
         <main style={{ flex: 1 }}>
@@ -103,6 +107,8 @@ function AppLayout() {
             
             <Route path="/workspace" element={<InvestigationWorkspacePage key={activeCaseId} onNavigate={handleNavigate} onSelectCase={handleSelectCase} onGenerateReport={handleGenerateReport} />} />
             <Route path="/workspace/:caseId" element={<InvestigationWorkspacePage key={activeCaseId} onNavigate={handleNavigate} onSelectCase={handleSelectCase} onGenerateReport={handleGenerateReport} />} />
+            <Route path="/cases" element={<InvestigationWorkspacePage key={activeCaseId} onNavigate={handleNavigate} onSelectCase={handleSelectCase} onGenerateReport={handleGenerateReport} />} />
+            <Route path="/cases/:caseId" element={<InvestigationWorkspacePage key={activeCaseId} onNavigate={handleNavigate} onSelectCase={handleSelectCase} onGenerateReport={handleGenerateReport} />} />
             
             <Route path="/ai-hub" element={<CentralizedAiHubPage key={activeCaseId} onNavigate={handleNavigate} />} />
             <Route path="/ai-hub/:caseId" element={<CentralizedAiHubPage key={activeCaseId} onNavigate={handleNavigate} />} />

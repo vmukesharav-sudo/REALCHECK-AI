@@ -7,6 +7,7 @@ interface ScoreMeterProps {
   assessment: string;
   confidenceScore?: number;
   size?: number;
+  hideDetails?: boolean;
 }
 
 export const ScoreMeter: React.FC<ScoreMeterProps> = ({
@@ -14,7 +15,8 @@ export const ScoreMeter: React.FC<ScoreMeterProps> = ({
   riskLevel,
   assessment,
   confidenceScore = 0.9,
-  size = 200
+  size = 200,
+  hideDetails = false
 }) => {
   const radius = size * 0.42;
   const strokeWidth = size * 0.08;
@@ -82,39 +84,54 @@ export const ScoreMeter: React.FC<ScoreMeterProps> = ({
             pointerEvents: 'none'
           }}
         >
-          <span style={{ fontSize: size * 0.11, color: 'var(--text-muted)', letterSpacing: '1px', textTransform: 'uppercase', fontWeight: 600 }}>
-            Authenticity
-          </span>
-          <div style={{ display: 'flex', alignItems: 'baseline' }}>
-            <span style={{ fontSize: size * 0.28, fontWeight: 800, fontFamily: 'var(--font-mono)', color: 'var(--text-main)' }}>
-              {score}
-            </span>
-            <span style={{ fontSize: size * 0.11, color: 'var(--text-dim)', fontFamily: 'var(--font-mono)', marginLeft: '2px' }}>
-              /100
-            </span>
-          </div>
-          <span style={{ fontSize: size * 0.08, color: 'var(--blue-soft)', fontFamily: 'var(--font-mono)' }}>
-            Conf: {Math.round(confidenceScore * 100)}%
-          </span>
+          {size >= 110 ? (
+            <>
+              <span style={{ fontSize: Math.max(9, size * 0.11), color: 'var(--text-muted)', letterSpacing: '1px', textTransform: 'uppercase', fontWeight: 600 }}>
+                Authenticity
+              </span>
+              <div style={{ display: 'flex', alignItems: 'baseline' }}>
+                <span style={{ fontSize: Math.round(size * 0.28), fontWeight: 800, fontFamily: 'var(--font-mono)', color: 'var(--text-main)' }}>
+                  {score}
+                </span>
+                <span style={{ fontSize: Math.round(size * 0.11), color: 'var(--text-dim)', fontFamily: 'var(--font-mono)', marginLeft: '2px' }}>
+                  /100
+                </span>
+              </div>
+              <span style={{ fontSize: Math.max(8, size * 0.08), color: 'var(--blue-soft)', fontFamily: 'var(--font-mono)' }}>
+                Conf: {Math.round(confidenceScore * 100)}%
+              </span>
+            </>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+              <span style={{ fontSize: `${Math.round(size * 0.36)}px`, fontWeight: 800, fontFamily: 'var(--font-mono)', color: strokeColor, lineHeight: 1 }}>
+                {score}
+              </span>
+              <span style={{ fontSize: `${Math.max(7, Math.round(size * 0.13))}px`, fontWeight: 700, color: 'var(--text-dim)', letterSpacing: '0.5px', marginTop: '1px' }}>
+                /100
+              </span>
+            </div>
+          )}
         </div>
       </div>
 
-      <div style={{ marginTop: '14px', textAlign: 'center' }}>
-        <div
-          style={{
-            fontSize: '18px',
-            fontWeight: 700,
-            letterSpacing: '0.5px',
-            color: strokeColor,
-            textShadow: `0 0 12px ${glowColor}`
-          }}
-        >
-          {assessment}
+      {!hideDetails && (
+        <div style={{ marginTop: '14px', textAlign: 'center' }}>
+          <div
+            style={{
+              fontSize: '18px',
+              fontWeight: 700,
+              letterSpacing: '0.5px',
+              color: strokeColor,
+              textShadow: `0 0 12px ${glowColor}`
+            }}
+          >
+            {assessment}
+          </div>
+          <div style={{ marginTop: '4px', fontSize: '11px', color: 'var(--text-muted)', letterSpacing: '0.4px' }}>
+            MODEL-BASED AUTHENTICITY ASSESSMENT
+          </div>
         </div>
-        <div style={{ marginTop: '4px', fontSize: '11px', color: 'var(--text-muted)', letterSpacing: '0.4px' }}>
-          MODEL-BASED AUTHENTICITY ASSESSMENT
-        </div>
-      </div>
+      )}
     </div>
   );
 };
