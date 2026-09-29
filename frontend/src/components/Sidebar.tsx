@@ -303,7 +303,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
   return (
     <>
-      <div className="desktop-only-flex" style={{ position: 'sticky', top: 0, height: '100vh', zIndex: 100 }}>
+      <div className="desktop-only-flex" style={{ position: 'sticky', top: 0, height: '100vh', zIndex: 100, flexShrink: 0 }}>
         {sidebarContent}
       </div>
 

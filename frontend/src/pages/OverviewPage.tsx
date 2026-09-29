@@ -45,47 +45,51 @@ export const OverviewPage: React.FC<OverviewPageProps> = ({ onNavigate, onSelect
   const recentCases = Object.values(SAMPLE_CASES);
 
   return (
-    <div style={{ maxWidth: '1440px', margin: '0 auto', padding: '24px 20px 80px' }}>
+    <div style={{ maxWidth: '1360px', margin: '0 auto', padding: '20px clamp(16px, 3vw, 28px) 80px', width: '100%' }}>
       {/* 1. HERO SECTION */}
-      <section style={{ textAlign: 'center', padding: '40px 16px 30px', position: 'relative' }}>
+      <section style={{ textAlign: 'center', padding: '24px 16px 20px', position: 'relative' }}>
         <div
           style={{
             display: 'inline-flex',
             alignItems: 'center',
             gap: '8px',
-            background: 'rgba(0, 240, 255, 0.08)',
-            border: '1px solid rgba(0, 240, 255, 0.3)',
+            background: 'var(--bg-body-pattern-1)',
+            border: '1px solid var(--border-subtle)',
             borderRadius: '20px',
-            padding: '4px 14px',
+            padding: '5px 16px',
             fontSize: '11px',
             fontWeight: 700,
             letterSpacing: '1px',
-            color: '#00f0ff',
+            color: 'var(--cyan-primary)',
             textTransform: 'uppercase',
-            marginBottom: '16px'
+            marginBottom: '14px'
           }}
         >
           <Sparkles size={12} />
-          One Platform &bull; Four Media Types &bull; Explainable Digital Authenticity
+          <span>One Platform &bull; Four Media Types &bull; Explainable Digital Authenticity</span>
         </div>
 
         <h1
           style={{
-            fontSize: '44px',
+            fontSize: 'clamp(28px, 3.8vw, 42px)',
             fontWeight: 800,
-            lineHeight: 1.15,
+            lineHeight: 1.22,
             letterSpacing: '-0.5px',
-            color: '#f8fafc',
-            maxWidth: '900px',
-            margin: '0 auto 16px'
+            color: 'var(--text-main)',
+            maxWidth: '850px',
+            margin: '0 auto 14px',
+            textAlign: 'center'
           }}
         >
-          Digital Content Can Look Real.{' '}
+          Digital Content Can Look Real.
+          <br />
           <span
             style={{
-              background: 'linear-gradient(135deg, #00f0ff 0%, #38bdf8 50%, #818cf8 100%)',
+              background: 'linear-gradient(135deg, var(--cyan-primary) 0%, var(--blue-soft) 50%, #818cf8 100%)',
               WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent'
+              WebkitTextFillColor: 'transparent',
+              display: 'inline-block',
+              marginTop: '4px'
             }}
           >
             Evidence Tells the Story.
@@ -94,55 +98,56 @@ export const OverviewPage: React.FC<OverviewPageProps> = ({ onNavigate, onSelect
 
         <p
           style={{
-            fontSize: '16px',
+            fontSize: '15px',
             lineHeight: 1.6,
-            color: '#94a3b8',
-            maxWidth: '780px',
-            margin: '0 auto 28px'
+            color: 'var(--text-muted)',
+            maxWidth: '740px',
+            margin: '0 auto 22px',
+            textAlign: 'center'
           }}
         >
           REALCHECK AI investigates images, videos, audio and text using specialized AI and forensic analysis — then explains the evidence behind every authenticity assessment.
         </p>
 
         {/* Hero Action Buttons */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '14px', flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '14px', flexWrap: 'wrap', marginBottom: '16px' }}>
           <button
             onClick={() => onNavigate('image')}
             className="btn-cyber-primary"
-            style={{ padding: '12px 24px', fontSize: '14px' }}
+            style={{ padding: '11px 22px', fontSize: '13px' }}
           >
             <span>START INVESTIGATION</span>
-            <ArrowRight size={16} />
+            <ArrowRight size={15} />
           </button>
 
           <button
             onClick={() => onNavigate('ai-hub')}
             className="btn-cyber-secondary"
-            style={{ padding: '11px 22px', fontSize: '14px' }}
+            style={{ padding: '10px 20px', fontSize: '13px' }}
           >
-            <Layers size={16} />
+            <Layers size={15} />
             <span>EXPLORE FORENSICS</span>
           </button>
         </div>
 
         {/* Hero Visual: Digital Evidence Core */}
-        <div style={{ marginTop: '24px' }}>
+        <div style={{ marginTop: '12px', display: 'flex', justifyContent: 'center' }}>
           <AuthenticityCore onNavigateEngine={(engine) => onNavigate(engine)} />
         </div>
       </section>
 
       {/* 2. OVERVIEW DASHBOARD METRICS */}
-      <section style={{ marginTop: '30px', marginBottom: '40px' }}>
+      <section style={{ marginTop: '24px', marginBottom: '36px' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
           <div>
-            <h2 style={{ fontSize: '18px', fontWeight: 800, color: '#f8fafc', letterSpacing: '0.5px' }}>
+            <h2 style={{ fontSize: '17px', fontWeight: 800, color: 'var(--text-main)', letterSpacing: '0.5px' }}>
               INVESTIGATION PULSE & METRICS
             </h2>
-            <p style={{ fontSize: '12px', color: '#94a3b8' }}>
+            <p style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
               Live telemetry aggregated across all four forensic inspection micro-engines
             </p>
           </div>
-          <div style={{ fontSize: '11px', color: '#38bdf8', fontFamily: 'var(--font-mono)' }}>
+          <div style={{ fontSize: '11px', color: 'var(--cyan-primary)', fontFamily: 'var(--font-mono)' }}>
             UPDATED: JUST NOW
           </div>
         </div>
@@ -150,36 +155,37 @@ export const OverviewPage: React.FC<OverviewPageProps> = ({ onNavigate, onSelect
         <div
           style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
-            gap: '14px'
+            gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))',
+            gap: '12px'
           }}
         >
           {[
-            { label: 'Total Investigations', value: '1,428', sub: '+38 today', color: '#00f0ff' },
-            { label: 'Images Analyzed', value: '612', sub: 'ViT + FFT', color: '#38bdf8' },
+            { label: 'Total Investigations', value: '1,428', sub: '+38 today', color: 'var(--cyan-primary)' },
+            { label: 'Images Analyzed', value: '612', sub: 'ViT + FFT', color: 'var(--blue-soft)' },
             { label: 'Videos Analyzed', value: '340', sub: 'Spatial-Temporal', color: '#60a5fa' },
-            { label: 'Audio Analyzed', value: '284', sub: 'Spectrogram + Vocoder', color: '#06b6d4' },
+            { label: 'Audio Analyzed', value: '284', sub: 'Spectrogram + Vocoder', color: 'var(--cyan-muted)' },
             { label: 'Texts Analyzed', value: '192', sub: 'Stylometric NLP', color: '#818cf8' },
-            { label: 'High-Risk Findings', value: '241', sub: 'Elevated anomalies', color: '#ef4444' },
-            { label: 'Uncertain Findings', value: '48', sub: 'Mixed signals', color: '#94a3b8' },
+            { label: 'High-Risk Findings', value: '241', sub: 'Elevated anomalies', color: 'var(--risk-high)' },
+            { label: 'Uncertain Findings', value: '48', sub: 'Mixed signals', color: 'var(--text-dim)' },
           ].map((metric, idx) => (
             <div
               key={idx}
               className="glass-panel"
               style={{
-                padding: '16px',
-                borderLeft: `4px solid ${metric.color}`
+                padding: '14px 16px',
+                borderLeft: `4px solid ${metric.color}`,
+                background: 'var(--bg-card)'
               }}
             >
-              <div style={{ fontSize: '11px', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+              <div style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
                 {metric.label}
               </div>
               <div
                 style={{
-                  fontSize: '26px',
+                  fontSize: '24px',
                   fontWeight: 800,
                   fontFamily: 'var(--font-mono)',
-                  color: '#f8fafc',
+                  color: 'var(--text-main)',
                   margin: '4px 0 2px'
                 }}
               >
@@ -194,12 +200,12 @@ export const OverviewPage: React.FC<OverviewPageProps> = ({ onNavigate, onSelect
       </section>
 
       {/* 3. MAIN FORENSIC PIPELINE INTERACTIVE MAP */}
-      <section className="glass-panel forensic-corner" style={{ padding: '24px', marginBottom: '40px' }}>
+      <section className="glass-panel forensic-corner" style={{ padding: '24px', marginBottom: '36px' }}>
         <div style={{ marginBottom: '18px' }}>
-          <h2 style={{ fontSize: '18px', fontWeight: 800, color: '#f8fafc', letterSpacing: '0.5px' }}>
+          <h2 style={{ fontSize: '17px', fontWeight: 800, color: 'var(--text-main)', letterSpacing: '0.5px' }}>
             SPECIALIZED FORENSIC PIPELINE ARCHITECTURE
           </h2>
-          <p style={{ fontSize: '12px', color: '#94a3b8' }}>
+          <p style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
             Click any processing stage to inspect the technical data contract and evidence extraction criteria
           </p>
         </div>
@@ -224,17 +230,17 @@ export const OverviewPage: React.FC<OverviewPageProps> = ({ onNavigate, onSelect
                   minWidth: '130px',
                   padding: '10px 12px',
                   borderRadius: '6px',
-                  background: isSelected ? 'rgba(0, 240, 255, 0.15)' : 'rgba(15, 23, 42, 0.6)',
-                  border: isSelected ? '1px solid #00f0ff' : '1px solid rgba(56, 189, 248, 0.15)',
+                  background: isSelected ? 'var(--bg-body-pattern-1)' : 'var(--bg-card)',
+                  border: isSelected ? '1px solid var(--cyan-primary)' : '1px solid var(--border-subtle)',
                   cursor: 'pointer',
                   textAlign: 'center',
                   transition: 'all 0.15s ease'
                 }}
               >
-                <div style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', color: isSelected ? '#00f0ff' : '#64748b' }}>
+                <div style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', color: isSelected ? 'var(--cyan-primary)' : 'var(--text-dim)' }}>
                   STEP {String(idx + 1).padStart(2, '0')}
                 </div>
-                <div style={{ fontSize: '11px', fontWeight: 700, color: isSelected ? '#f8fafc' : '#cbd5e1', marginTop: '2px' }}>
+                <div style={{ fontSize: '11px', fontWeight: 700, color: isSelected ? 'var(--text-main)' : 'var(--text-muted)', marginTop: '2px' }}>
                   {stage.name}
                 </div>
               </div>
@@ -248,8 +254,11 @@ export const OverviewPage: React.FC<OverviewPageProps> = ({ onNavigate, onSelect
             style={{
               marginTop: '16px',
               padding: '16px 20px',
-              backgroundColor: 'rgba(15, 23, 42, 0.8)',
-              borderLeft: '4px solid #00f0ff',
+              backgroundColor: 'var(--bg-body-pattern-1)',
+              borderLeft: '4px solid var(--cyan-primary)',
+              border: '1px solid var(--border-subtle)',
+              borderLeftWidth: '4px',
+              borderLeftColor: 'var(--cyan-primary)',
               borderRadius: '0 8px 8px 0',
               display: 'flex',
               alignItems: 'center',
@@ -258,10 +267,10 @@ export const OverviewPage: React.FC<OverviewPageProps> = ({ onNavigate, onSelect
             }}
           >
             <div>
-              <div style={{ fontSize: '11px', color: '#00f0ff', letterSpacing: '1px', textTransform: 'uppercase', fontWeight: 700 }}>
+              <div style={{ fontSize: '11px', color: 'var(--cyan-primary)', letterSpacing: '1px', textTransform: 'uppercase', fontWeight: 700 }}>
                 STAGE {selectedPipelineStage + 1}: {pipelineStages[selectedPipelineStage].name}
               </div>
-              <div style={{ fontSize: '13px', color: '#e2e8f0', marginTop: '4px', lineHeight: 1.5 }}>
+              <div style={{ fontSize: '13px', color: 'var(--text-muted)', marginTop: '4px', lineHeight: 1.5 }}>
                 {pipelineStages[selectedPipelineStage].desc}
               </div>
             </div>
@@ -269,9 +278,9 @@ export const OverviewPage: React.FC<OverviewPageProps> = ({ onNavigate, onSelect
             <button
               onClick={() => onNavigate('about')}
               style={{
-                background: 'rgba(0, 240, 255, 0.1)',
-                border: '1px solid rgba(0, 240, 255, 0.3)',
-                color: '#00f0ff',
+                background: 'var(--bg-card)',
+                border: '1px solid var(--border-subtle)',
+                color: 'var(--cyan-primary)',
                 padding: '6px 14px',
                 borderRadius: '6px',
                 fontSize: '11px',
@@ -288,12 +297,12 @@ export const OverviewPage: React.FC<OverviewPageProps> = ({ onNavigate, onSelect
 
       {/* 4. RECENT INVESTIGATIONS BENCHMARK TABLE */}
       <section className="glass-panel" style={{ padding: '24px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '18px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '18px', flexWrap: 'wrap', gap: '12px' }}>
           <div>
-            <h2 style={{ fontSize: '18px', fontWeight: 800, color: '#f8fafc', letterSpacing: '0.5px' }}>
+            <h2 style={{ fontSize: '17px', fontWeight: 800, color: 'var(--text-main)', letterSpacing: '0.5px' }}>
               RECENT FORENSIC INVESTIGATIONS
             </h2>
-            <p style={{ fontSize: '12px', color: '#94a3b8' }}>
+            <p style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
               Standardized probabilistic cases ready for immediate examination
             </p>
           </div>
@@ -311,7 +320,7 @@ export const OverviewPage: React.FC<OverviewPageProps> = ({ onNavigate, onSelect
         <div style={{ overflowX: 'auto' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
             <thead>
-              <tr style={{ borderBottom: '1px solid rgba(56, 189, 248, 0.15)', color: '#64748b', fontSize: '11px', textTransform: 'uppercase' }}>
+              <tr style={{ borderBottom: '1px solid var(--border-subtle)', color: 'var(--text-dim)', fontSize: '11px', textTransform: 'uppercase' }}>
                 <th style={{ padding: '12px 14px' }}>Case ID</th>
                 <th style={{ padding: '12px 14px' }}>Target File</th>
                 <th style={{ padding: '12px 14px' }}>Media Type</th>
@@ -332,37 +341,37 @@ export const OverviewPage: React.FC<OverviewPageProps> = ({ onNavigate, onSelect
                   <tr
                     key={c.case_id}
                     style={{
-                      borderBottom: '1px solid rgba(56, 189, 248, 0.08)',
+                      borderBottom: '1px solid var(--border-subtle)',
                       transition: 'background 0.15s ease'
                     }}
-                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(0, 240, 255, 0.04)'}
+                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--bg-body-pattern-1)'}
                     onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
                   >
-                    <td style={{ padding: '12px 14px', fontFamily: 'var(--font-mono)', fontSize: '12px', color: '#00f0ff', fontWeight: 600 }}>
+                    <td style={{ padding: '12px 14px', fontFamily: 'var(--font-mono)', fontSize: '12px', color: 'var(--cyan-primary)', fontWeight: 600 }}>
                       {c.case_id}
                     </td>
-                    <td style={{ padding: '12px 14px', fontSize: '13px', color: '#f1f5f9', fontWeight: 500 }}>
+                    <td style={{ padding: '12px 14px', fontSize: '13px', color: 'var(--text-main)', fontWeight: 500 }}>
                       {c.file_name}
                     </td>
-                    <td style={{ padding: '12px 14px', fontSize: '12px', color: '#94a3b8' }}>
+                    <td style={{ padding: '12px 14px', fontSize: '12px', color: 'var(--text-muted)' }}>
                       <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
-                        {c.media_type === 'IMAGE' && <ImageIcon size={14} color="#00f0ff" />}
-                        {c.media_type === 'VIDEO' && <VideoIcon size={14} color="#38bdf8" />}
-                        {c.media_type === 'AUDIO' && <Mic size={14} color="#06b6d4" />}
+                        {c.media_type === 'IMAGE' && <ImageIcon size={14} color="var(--cyan-primary)" />}
+                        {c.media_type === 'VIDEO' && <VideoIcon size={14} color="var(--blue-soft)" />}
+                        {c.media_type === 'AUDIO' && <Mic size={14} color="var(--cyan-muted)" />}
                         {c.media_type === 'TEXT' && <FileText size={14} color="#60a5fa" />}
                         {c.media_type}
                       </span>
                     </td>
-                    <td style={{ padding: '12px 14px', fontSize: '12px', fontWeight: 600, color: isHighRisk ? '#f87171' : (isMediumRisk ? '#fbbf24' : '#34d399') }}>
+                    <td style={{ padding: '12px 14px', fontSize: '12px', fontWeight: 600, color: isHighRisk ? 'var(--risk-high)' : (isMediumRisk ? 'var(--risk-medium)' : 'var(--risk-low)') }}>
                       {c.assessment}
                     </td>
-                    <td style={{ padding: '12px 14px', fontFamily: 'var(--font-mono)', fontSize: '13px', fontWeight: 700, color: '#f8fafc' }}>
+                    <td style={{ padding: '12px 14px', fontFamily: 'var(--font-mono)', fontSize: '13px', fontWeight: 700, color: 'var(--text-main)' }}>
                       {c.authenticity_score}/100
                     </td>
                     <td style={{ padding: '12px 14px' }}>
                       <span className={riskBadge}>{c.risk_level}</span>
                     </td>
-                    <td style={{ padding: '12px 14px', fontFamily: 'var(--font-mono)', fontSize: '12px', color: '#94a3b8' }}>
+                    <td style={{ padding: '12px 14px', fontFamily: 'var(--font-mono)', fontSize: '12px', color: 'var(--text-muted)' }}>
                       {c.confidence_level} ({Math.round(c.confidence_score * 100)}%)
                     </td>
                     <td style={{ padding: '12px 14px', textAlign: 'right' }}>
@@ -372,9 +381,9 @@ export const OverviewPage: React.FC<OverviewPageProps> = ({ onNavigate, onSelect
                           onNavigate(c.media_type.toLowerCase());
                         }}
                         style={{
-                          background: 'rgba(56, 189, 248, 0.1)',
-                          border: '1px solid rgba(56, 189, 248, 0.3)',
-                          color: '#38bdf8',
+                          background: 'var(--bg-body-pattern-1)',
+                          border: '1px solid var(--border-subtle)',
+                          color: 'var(--cyan-primary)',
                           padding: '5px 12px',
                           borderRadius: '4px',
                           fontSize: '11px',
