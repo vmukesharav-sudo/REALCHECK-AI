@@ -7,6 +7,7 @@ interface ScoreMeterProps {
   assessment: string;
   confidenceScore?: number;
   size?: number;
+  hideDetails?: boolean;
 }
 
 export const ScoreMeter: React.FC<ScoreMeterProps> = ({
@@ -14,7 +15,8 @@ export const ScoreMeter: React.FC<ScoreMeterProps> = ({
   riskLevel,
   assessment,
   confidenceScore = 0.9,
-  size = 200
+  size = 200,
+  hideDetails = false
 }) => {
   const radius = size * 0.42;
   const strokeWidth = size * 0.08;
@@ -99,22 +101,24 @@ export const ScoreMeter: React.FC<ScoreMeterProps> = ({
         </div>
       </div>
 
-      <div style={{ marginTop: '14px', textAlign: 'center' }}>
-        <div
-          style={{
-            fontSize: '18px',
-            fontWeight: 700,
-            letterSpacing: '0.5px',
-            color: strokeColor,
-            textShadow: `0 0 12px ${glowColor}`
-          }}
-        >
-          {assessment}
+      {!hideDetails && (
+        <div style={{ marginTop: '14px', textAlign: 'center' }}>
+          <div
+            style={{
+              fontSize: '18px',
+              fontWeight: 700,
+              letterSpacing: '0.5px',
+              color: strokeColor,
+              textShadow: `0 0 12px ${glowColor}`
+            }}
+          >
+            {assessment}
+          </div>
+          <div style={{ marginTop: '4px', fontSize: '11px', color: 'var(--text-muted)', letterSpacing: '0.4px' }}>
+            MODEL-BASED AUTHENTICITY ASSESSMENT
+          </div>
         </div>
-        <div style={{ marginTop: '4px', fontSize: '11px', color: 'var(--text-muted)', letterSpacing: '0.4px' }}>
-          MODEL-BASED AUTHENTICITY ASSESSMENT
-        </div>
-      </div>
+      )}
     </div>
   );
 };

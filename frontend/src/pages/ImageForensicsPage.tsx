@@ -261,10 +261,10 @@ export const ImageForensicsPage: React.FC<ImageForensicsPageProps> = ({
         <>
           {/* Main Two-Column Grid: Left (~58% Forensic Visual Inspection) & Right (~42% Authenticity Result) */}
           <div className="image-forensics-grid" style={{ marginBottom: '24px' }}>
-            {/* LEFT SIDE: Image Viewer + Grad-CAM Heatmap + Upload */}
-            <div className="glass-panel forensic-corner" style={{ padding: '18px', borderRadius: '12px' }}>
+            {/* LEFT SIDE: Forensic Visual Inspection Panel */}
+            <div className="glass-panel forensic-corner" style={{ padding: '20px', borderRadius: '12px' }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
-                <div style={{ fontSize: '12px', fontWeight: 700, color: 'var(--cyan-primary)', letterSpacing: '0.8px', textTransform: 'uppercase' }}>
+                <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--cyan-primary)', letterSpacing: '0.8px', textTransform: 'uppercase' }}>
                   FORENSIC VISUAL INSPECTION
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
@@ -321,7 +321,7 @@ export const ImageForensicsPage: React.FC<ImageForensicsPageProps> = ({
                 style={{
                   position: 'relative',
                   width: '100%',
-                  height: '320px',
+                  height: '310px',
                   backgroundColor: 'var(--bg-deep)',
                   borderRadius: '8px',
                   border: isDragging ? '2px dashed var(--cyan-primary)' : '1px solid var(--border-subtle)',
@@ -366,8 +366,8 @@ export const ImageForensicsPage: React.FC<ImageForensicsPageProps> = ({
                   >
                     <div
                       style={{
-                        width: '180px',
-                        height: '210px',
+                        width: '170px',
+                        height: '200px',
                         borderRadius: '50% 50% 40% 40%',
                         background: currentCase.sample_type === 'ai'
                           ? 'linear-gradient(180deg, rgba(42, 67, 101, 0.9) 0%, rgba(26, 32, 44, 0.9) 100%)'
@@ -583,41 +583,41 @@ export const ImageForensicsPage: React.FC<ImageForensicsPageProps> = ({
               </div>
             </div>
 
-            {/* RIGHT SIDE: Redesigned Authenticity Result */}
-            <div className="glass-panel" style={{ padding: '20px', borderRadius: '12px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
-              {/* Header: Title + Case ID */}
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingBottom: '10px', borderBottom: '1px solid var(--border-subtle)' }}>
-                <div style={{ fontSize: '12px', fontWeight: 800, color: 'var(--cyan-primary)', letterSpacing: '0.8px', textTransform: 'uppercase' }}>
+            {/* RIGHT SIDE: Single Unified Authenticity Result Panel */}
+            <div className="glass-panel" style={{ padding: '20px', borderRadius: '12px' }}>
+              {/* A. Header: Title + Case ID on exact same baseline */}
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingBottom: '12px', borderBottom: '1px solid var(--border-subtle)' }}>
+                <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--cyan-primary)', letterSpacing: '0.8px', textTransform: 'uppercase' }}>
                   AUTHENTICITY RESULT
-                </div>
-                <div style={{ fontSize: '11px', fontFamily: 'var(--font-mono)', color: 'var(--text-muted)', background: 'var(--bg-card-solid)', padding: '2px 8px', borderRadius: '4px', border: '1px solid var(--border-subtle)' }}>
+                </span>
+                <span style={{ fontSize: '11px', fontFamily: 'var(--font-mono)', color: 'var(--text-muted)', background: 'var(--bg-card-solid)', padding: '2px 8px', borderRadius: '4px', border: '1px solid var(--border-subtle)' }}>
                   {currentCase.case_id}
+                </span>
+              </div>
+
+              {/* B. AI vs Real Percentage Section: Equal 2-Column Layout */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginTop: '16px' }}>
+                <div>
+                  <div style={{ fontSize: '11px', fontWeight: 700, color: isAiDominant ? 'var(--risk-high)' : 'var(--text-muted)', letterSpacing: '0.8px', textTransform: 'uppercase' }}>
+                    AI-GENERATED
+                  </div>
+                  <div style={{ fontSize: '32px', fontWeight: 800, fontFamily: 'var(--font-mono)', color: isAiDominant ? 'var(--risk-high)' : 'var(--text-main)', lineHeight: 1.1, marginTop: '4px' }}>
+                    {aiPercentage.toFixed(0)}%
+                  </div>
+                </div>
+                <div style={{ textAlign: 'right' }}>
+                  <div style={{ fontSize: '11px', fontWeight: 700, color: !isAiDominant ? 'var(--risk-low)' : 'var(--text-muted)', letterSpacing: '0.8px', textTransform: 'uppercase' }}>
+                    REAL / AUTHENTIC
+                  </div>
+                  <div style={{ fontSize: '32px', fontWeight: 800, fontFamily: 'var(--font-mono)', color: !isAiDominant ? 'var(--risk-low)' : 'var(--text-main)', lineHeight: 1.1, marginTop: '4px' }}>
+                    {realPercentage.toFixed(0)}%
+                  </div>
                 </div>
               </div>
 
-              {/* AI vs Real Likelihood Numbers & Split Bar */}
-              <div>
-                <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: '8px' }}>
-                  <div>
-                    <div style={{ fontSize: '10px', fontWeight: 700, color: isAiDominant ? 'var(--risk-high)' : 'var(--text-muted)', letterSpacing: '0.8px', textTransform: 'uppercase' }}>
-                      AI-GENERATED
-                    </div>
-                    <div style={{ fontSize: '24px', fontWeight: 800, fontFamily: 'var(--font-mono)', color: isAiDominant ? 'var(--risk-high)' : 'var(--text-main)', lineHeight: 1.1 }}>
-                      {aiPercentage.toFixed(0)}%
-                    </div>
-                  </div>
-                  <div style={{ textAlign: 'right' }}>
-                    <div style={{ fontSize: '10px', fontWeight: 700, color: !isAiDominant ? 'var(--risk-low)' : 'var(--text-muted)', letterSpacing: '0.8px', textTransform: 'uppercase' }}>
-                      REAL / AUTHENTIC
-                    </div>
-                    <div style={{ fontSize: '24px', fontWeight: 800, fontFamily: 'var(--font-mono)', color: !isAiDominant ? 'var(--risk-low)' : 'var(--text-main)', lineHeight: 1.1 }}>
-                      {realPercentage.toFixed(0)}%
-                    </div>
-                  </div>
-                </div>
-
-                {/* Dual Likelihood Split Bar */}
-                <div style={{ height: '10px', width: '100%', borderRadius: '5px', overflow: 'hidden', display: 'flex', background: 'var(--bg-body-pattern-1)', border: '1px solid var(--border-subtle)' }}>
+              {/* C. Probability Bar directly connected to percentages */}
+              <div style={{ marginTop: '8px' }}>
+                <div style={{ height: '8px', width: '100%', borderRadius: '4px', overflow: 'hidden', display: 'flex', background: 'var(--bg-body-pattern-1)', border: '1px solid var(--border-subtle)' }}>
                   <div
                     style={{
                       width: `${aiPercentage}%`,
@@ -641,14 +641,12 @@ export const ImageForensicsPage: React.FC<ImageForensicsPageProps> = ({
                 </div>
               </div>
 
-              {/* Clear Verdict Banner */}
+              {/* D. Verdict + Confidence: Compact horizontal row */}
               <div
                 style={{
-                  padding: '10px 14px',
-                  borderRadius: '8px',
-                  background: 'var(--bg-body-pattern-1)',
-                  border: '1px solid var(--border-subtle)',
-                  borderLeft: `3px solid ${verdictColor}`,
+                  marginTop: '14px',
+                  paddingTop: '12px',
+                  borderTop: '1px solid var(--border-subtle)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'space-between'
@@ -663,25 +661,24 @@ export const ImageForensicsPage: React.FC<ImageForensicsPageProps> = ({
                   </div>
                 </div>
                 <div style={{ textAlign: 'right' }}>
-                  <div style={{ fontSize: '10px', color: 'var(--text-muted)', textTransform: 'uppercase' }}>
-                    Confidence
+                  <div style={{ fontSize: '10px', fontWeight: 700, color: 'var(--text-dim)', letterSpacing: '0.8px', textTransform: 'uppercase' }}>
+                    CONFIDENCE
                   </div>
-                  <div style={{ fontSize: '13px', fontWeight: 700, fontFamily: 'var(--font-mono)', color: 'var(--text-main)', marginTop: '2px' }}>
+                  <div style={{ fontSize: '14px', fontWeight: 800, fontFamily: 'var(--font-mono)', color: 'var(--text-main)', marginTop: '2px' }}>
                     {Math.round(currentCase.confidence_score * 100)}%
                   </div>
                 </div>
               </div>
 
-              {/* Secondary Metric: Authenticity Score + Compact Gauge */}
+              {/* E. Secondary Authenticity Score: Compact horizontal 2-column layout */}
               <div
                 style={{
+                  marginTop: '12px',
+                  paddingTop: '12px',
+                  borderTop: '1px solid var(--border-subtle)',
                   display: 'flex',
                   alignItems: 'center',
-                  gap: '14px',
-                  padding: '10px 14px',
-                  borderRadius: '8px',
-                  background: 'var(--bg-card)',
-                  border: '1px solid var(--border-subtle)'
+                  gap: '14px'
                 }}
               >
                 <ScoreMeter
@@ -689,21 +686,17 @@ export const ImageForensicsPage: React.FC<ImageForensicsPageProps> = ({
                   riskLevel={currentCase.risk_level}
                   assessment={currentCase.assessment}
                   confidenceScore={currentCase.confidence_score}
-                  size={76}
+                  size={56}
+                  hideDetails={true}
                 />
                 <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: '10px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                    Unified Authenticity Score
+                  <div style={{ fontSize: '10px', fontWeight: 700, color: 'var(--text-dim)', letterSpacing: '0.6px', textTransform: 'uppercase' }}>
+                    UNIFIED AUTHENTICITY SCORE
                   </div>
-                  <div style={{ display: 'flex', alignItems: 'baseline', gap: '4px', marginTop: '2px' }}>
-                    <span style={{ fontSize: '20px', fontWeight: 800, fontFamily: 'var(--font-mono)', color: 'var(--text-main)' }}>
-                      {currentCase.authenticity_score}
+                  <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px', marginTop: '2px' }}>
+                    <span style={{ fontSize: '18px', fontWeight: 800, fontFamily: 'var(--font-mono)', color: 'var(--text-main)' }}>
+                      {currentCase.authenticity_score} / 100
                     </span>
-                    <span style={{ fontSize: '12px', color: 'var(--text-dim)', fontFamily: 'var(--font-mono)' }}>
-                      /100
-                    </span>
-                  </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '4px' }}>
                     <span
                       className={
                         currentCase.authenticity_score <= 30
@@ -712,62 +705,77 @@ export const ImageForensicsPage: React.FC<ImageForensicsPageProps> = ({
                             ? 'badge-risk-medium'
                             : 'badge-risk-low'
                       }
-                      style={{ fontSize: '10px', padding: '2px 6px' }}
+                      style={{ fontSize: '10px', padding: '1px 6px', lineHeight: 1.4 }}
                     >
                       {currentCase.risk_level}
                     </span>
-                    <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
-                      {currentCase.authenticity_score >= 70 ? 'Consistent with optical sensor' : 'Anomalous synthetic artifacts'}
-                    </span>
+                  </div>
+                  <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '2px' }}>
+                    {currentCase.authenticity_score >= 70 ? 'Consistent with optical sensor' : 'Anomalous synthetic artifacts'}
                   </div>
                 </div>
               </div>
 
-              {/* Forensic Metrics: Compact 2x2 Grid */}
+              {/* F. Forensic Metrics: Clean 2x2 Grid with identical dimensions & typography */}
               <div
                 style={{
+                  marginTop: '12px',
                   display: 'grid',
-                  gridTemplateColumns: 'repeat(2, 1fr)',
+                  gridTemplateColumns: '1fr 1fr',
                   gap: '8px'
                 }}
               >
                 <div style={{ background: 'var(--bg-card-solid)', border: '1px solid var(--border-subtle)', padding: '8px 10px', borderRadius: '6px' }}>
-                  <div style={{ fontSize: '9px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>AI Generation</div>
+                  <div style={{ fontSize: '9px', fontWeight: 700, color: 'var(--text-dim)', textTransform: 'uppercase', letterSpacing: '0.5px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                    AI GENERATION
+                  </div>
                   <div style={{ fontSize: '15px', fontWeight: 700, fontFamily: 'var(--font-mono)', color: currentCase.ai_generation_probability > 70 ? 'var(--risk-high)' : 'var(--risk-low)', marginTop: '2px' }}>
                     {currentCase.ai_generation_probability.toFixed(1)}%
                   </div>
                 </div>
 
                 <div style={{ background: 'var(--bg-card-solid)', border: '1px solid var(--border-subtle)', padding: '8px 10px', borderRadius: '6px' }}>
-                  <div style={{ fontSize: '9px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Manipulation Risk</div>
+                  <div style={{ fontSize: '9px', fontWeight: 700, color: 'var(--text-dim)', textTransform: 'uppercase', letterSpacing: '0.5px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                    MANIPULATION RISK
+                  </div>
                   <div style={{ fontSize: '15px', fontWeight: 700, fontFamily: 'var(--font-mono)', color: currentCase.manipulation_risk > 50 ? 'var(--risk-medium)' : 'var(--risk-low)', marginTop: '2px' }}>
                     {currentCase.manipulation_risk.toFixed(1)}%
                   </div>
                 </div>
 
                 <div style={{ background: 'var(--bg-card-solid)', border: '1px solid var(--border-subtle)', padding: '8px 10px', borderRadius: '6px' }}>
-                  <div style={{ fontSize: '9px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Forensic Anomaly</div>
+                  <div style={{ fontSize: '9px', fontWeight: 700, color: 'var(--text-dim)', textTransform: 'uppercase', letterSpacing: '0.5px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                    FORENSIC ANOMALY
+                  </div>
                   <div style={{ fontSize: '15px', fontWeight: 700, fontFamily: 'var(--font-mono)', color: currentCase.forensic_anomaly_score > 50 ? 'var(--risk-high)' : 'var(--text-main)', marginTop: '2px' }}>
                     {currentCase.forensic_anomaly_score.toFixed(1)}%
                   </div>
                 </div>
 
                 <div style={{ background: 'var(--bg-card-solid)', border: '1px solid var(--border-subtle)', padding: '8px 10px', borderRadius: '6px' }}>
-                  <div style={{ fontSize: '9px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Metadata Risk</div>
+                  <div style={{ fontSize: '9px', fontWeight: 700, color: 'var(--text-dim)', textTransform: 'uppercase', letterSpacing: '0.5px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                    METADATA RISK
+                  </div>
                   <div style={{ fontSize: '15px', fontWeight: 700, fontFamily: 'var(--font-mono)', color: 'var(--text-muted)', marginTop: '2px' }}>
                     {currentCase.metadata_risk_score.toFixed(1)}%
                   </div>
                 </div>
               </div>
 
-              {/* Why This Result Summary & Evidence Tags */}
-              <div style={{ padding: '10px 12px', borderRadius: '6px', background: 'var(--bg-body-pattern-1)', border: '1px solid var(--border-subtle)' }}>
-                <div style={{ fontSize: '10px', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '4px' }}>
-                  Why this result?
+              {/* G. Why This Result: Compact section without overflow */}
+              <div
+                style={{
+                  marginTop: '12px',
+                  paddingTop: '10px',
+                  borderTop: '1px solid var(--border-subtle)'
+                }}
+              >
+                <div style={{ fontSize: '10px', fontWeight: 700, color: 'var(--text-dim)', textTransform: 'uppercase', letterSpacing: '0.6px', marginBottom: '4px' }}>
+                  WHY THIS RESULT?
                 </div>
-                <div style={{ fontSize: '11px', color: 'var(--text-main)', lineHeight: 1.45, marginBottom: '8px' }}>
-                  {currentCase.why_result_explanation.length > 170
-                    ? currentCase.why_result_explanation.slice(0, 170) + '...'
+                <div style={{ fontSize: '11px', color: 'var(--text-muted)', lineHeight: 1.45, marginBottom: '6px' }}>
+                  {currentCase.why_result_explanation.length > 150
+                    ? currentCase.why_result_explanation.slice(0, 150) + '...'
                     : currentCase.why_result_explanation}
                 </div>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px' }}>
@@ -784,12 +792,12 @@ export const ImageForensicsPage: React.FC<ImageForensicsPageProps> = ({
                 </div>
               </div>
 
-              {/* Action Buttons */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '2px' }}>
+              {/* H. Action Buttons */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '14px' }}>
                 <button
                   onClick={() => onGenerateReport(currentCase.case_id)}
                   className="btn-cyber-primary"
-                  style={{ flex: 1.2, justifyContent: 'center', padding: '9px 12px', fontSize: '11px' }}
+                  style={{ flex: 1.2, justifyContent: 'center', padding: '8px 12px', fontSize: '11px' }}
                 >
                   <FileSpreadsheet size={13} />
                   <span>GENERATE REPORT</span>
