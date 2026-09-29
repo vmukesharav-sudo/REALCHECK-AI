@@ -78,6 +78,8 @@ function AppLayout() {
           onOpenSearch={() => setIsSearchOpen(true)}
           activeCaseId={activeCaseId}
           setMobileMenuOpen={setMobileMenuOpen}
+          onSelectCase={handleSelectCase}
+          onNavigate={handleNavigate}
         />
 
         <main style={{ flex: 1 }}>
