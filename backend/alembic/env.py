@@ -27,7 +27,18 @@ from app.models import user, case, media, job
 
 target_metadata = Base.metadata
 
-config.set_main_option("sqlalchemy.url", settings.DATABASE_URL)
+alembic_db_url = settings.DIRECT_URL or settings.DATABASE_URL
+if alembic_db_url.startswith("postgres://"):
+    alembic_db_url = alembic_db_url.replace("postgres://", "postgresql+psycopg2://", 1)
+elif alembic_db_url.startswith("postgresql://"):
+    alembic_db_url = alembic_db_url.replace("postgresql://", "postgresql+psycopg2://", 1)
+if "?pgbouncer=true" in alembic_db_url:
+    alembic_db_url = alembic_db_url.replace("?pgbouncer=true", "")
+
+# Escape '%' for configparser interpolation
+alembic_db_url = alembic_db_url.replace("%", "%%")
+
+config.set_main_option("sqlalchemy.url", alembic_db_url)
 
 # other values from the config, defined by the needs of env.py,
 # can be acquired:

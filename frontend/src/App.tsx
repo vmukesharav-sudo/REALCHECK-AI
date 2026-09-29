@@ -18,10 +18,13 @@ import { ArchitectureAboutPage } from './pages/ArchitectureAboutPage';
 import { LoginPage } from './pages/LoginPage';
 import { SignupPage } from './pages/SignupPage';
 import { ForgotPasswordPage } from './pages/ForgotPasswordPage';
+import { ResetPasswordPage } from './pages/ResetPasswordPage';
+import { VerifyEmailPage } from './pages/VerifyEmailPage';
 import { SettingsPage } from './pages/SettingsPage';
 import { InvestigationProvider, useInvestigation } from './contexts/InvestigationContext';
 import { AuthProvider } from './contexts/AuthContext';
 import { ProtectedRoute } from './components/ProtectedRoute';
+import { GoogleOAuthProvider } from '@react-oauth/google';
 
 function AppLayout() {
   const location = useLocation();
@@ -138,23 +141,29 @@ function AppLayout() {
 }
 
 export function App() {
+  const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || 'mock_client_id_for_dev';
+
   return (
-    <BrowserRouter>
-      <AuthProvider>
-        <Routes>
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/signup" element={<SignupPage />} />
-          <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-          <Route path="*" element={
-            <ProtectedRoute>
-              <InvestigationProvider>
-                <AppLayout />
-              </InvestigationProvider>
-            </ProtectedRoute>
-          } />
-        </Routes>
-      </AuthProvider>
-    </BrowserRouter>
+    <GoogleOAuthProvider clientId={googleClientId}>
+      <BrowserRouter>
+        <AuthProvider>
+          <Routes>
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/signup" element={<SignupPage />} />
+            <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+            <Route path="/reset-password" element={<ResetPasswordPage />} />
+            <Route path="/verify-email" element={<VerifyEmailPage />} />
+            <Route path="*" element={
+              <ProtectedRoute>
+                <InvestigationProvider>
+                  <AppLayout />
+                </InvestigationProvider>
+              </ProtectedRoute>
+            } />
+          </Routes>
+        </AuthProvider>
+      </BrowserRouter>
+    </GoogleOAuthProvider>
   );
 }
 
