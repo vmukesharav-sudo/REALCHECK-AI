@@ -156,7 +156,7 @@ export const ImageForensicsPage: React.FC<ImageForensicsPageProps> = ({
   const selectedRegion = currentCase.suspicious_regions?.find(r => r.id === selectedRegionId);
 
   return (
-    <div style={{ maxWidth: '1440px', margin: '0 auto', padding: '24px 20px 80px' }}>
+    <div style={{ maxWidth: '1360px', margin: '0 auto', padding: '24px clamp(16px, 3vw, 28px) 80px' }}>
       {/* Hidden File Input for Image Upload */}
       <input
         ref={fileInputRef}
@@ -170,13 +170,13 @@ export const ImageForensicsPage: React.FC<ImageForensicsPageProps> = ({
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px', flexWrap: 'wrap', gap: '16px' }}>
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span style={{ fontSize: '11px', color: '#00f0ff', letterSpacing: '1px', textTransform: 'uppercase', fontWeight: 700 }}>
+            <span style={{ fontSize: '11px', color: 'var(--cyan-primary)', letterSpacing: '1px', textTransform: 'uppercase', fontWeight: 700 }}>
               SPECIALIZED FORENSIC ENGINE 01
             </span>
-            <span style={{ fontSize: '11px', color: '#64748b' }}>&bull;</span>
-            <span style={{ fontSize: '11px', color: '#94a3b8' }}>VISION TRANSFORMER + SPECTRAL RESNET</span>
+            <span style={{ fontSize: '11px', color: 'var(--text-dim)' }}>&bull;</span>
+            <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>VISION TRANSFORMER + SPECTRAL RESNET</span>
           </div>
-          <h1 style={{ fontSize: '28px', fontWeight: 800, color: '#f8fafc', letterSpacing: '0.5px', marginTop: '2px' }}>
+          <h1 style={{ fontSize: '28px', fontWeight: 800, color: 'var(--text-main)', letterSpacing: '0.5px', marginTop: '2px' }}>
             IMAGE FORENSICS & AUTHENTICITY ANALYSIS
           </h1>
         </div>

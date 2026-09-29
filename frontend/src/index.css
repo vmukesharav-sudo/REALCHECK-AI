@@ -350,6 +350,11 @@ body {
 }
 
 /* Responsive helpers */
+.desktop-only-flex {
+  display: flex !important;
+  align-items: center;
+}
+
 @media (max-width: 767px) {
   .desktop-only, .desktop-only-flex {
     display: none !important;

@@ -163,7 +163,7 @@ export const AudioForensicsPage: React.FC<AudioForensicsPageProps> = ({
   );
 
   return (
-    <div style={{ maxWidth: '1440px', margin: '0 auto', padding: '24px 20px 80px' }}>
+    <div style={{ maxWidth: '1360px', margin: '0 auto', padding: '24px clamp(16px, 3vw, 28px) 80px' }}>
       {/* Hidden File Input */}
       <input
         ref={fileInputRef}
@@ -188,13 +188,13 @@ export const AudioForensicsPage: React.FC<AudioForensicsPageProps> = ({
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px', flexWrap: 'wrap', gap: '16px' }}>
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span style={{ fontSize: '11px', color: '#06b6d4', letterSpacing: '1px', textTransform: 'uppercase', fontWeight: 700 }}>
+            <span style={{ fontSize: '11px', color: 'var(--cyan-muted)', letterSpacing: '1px', textTransform: 'uppercase', fontWeight: 700 }}>
               SPECIALIZED FORENSIC ENGINE 03
             </span>
-            <span style={{ fontSize: '11px', color: '#64748b' }}>&bull;</span>
-            <span style={{ fontSize: '11px', color: '#94a3b8' }}>MEL-SPECTROGRAM CNN + WAV2VEC2 ACOUSTIC CLASSIFIER</span>
+            <span style={{ fontSize: '11px', color: 'var(--text-dim)' }}>&bull;</span>
+            <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>MEL-SPECTROGRAM CNN + WAV2VEC2 ACOUSTIC CLASSIFIER</span>
           </div>
-          <h1 style={{ fontSize: '28px', fontWeight: 800, color: '#f8fafc', letterSpacing: '0.5px', marginTop: '2px' }}>
+          <h1 style={{ fontSize: '28px', fontWeight: 800, color: 'var(--text-main)', letterSpacing: '0.5px', marginTop: '2px' }}>
             AUDIO AUTHENTICITY &amp; VOICE CLONING LAB
           </h1>
         </div>

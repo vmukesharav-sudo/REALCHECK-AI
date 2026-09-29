@@ -102,7 +102,7 @@ export const TextStylometryPage: React.FC<TextStylometryPageProps> = ({
   };
 
   return (
-    <div style={{ maxWidth: '1440px', margin: '0 auto', padding: '24px 20px 80px' }}>
+    <div style={{ maxWidth: '1360px', margin: '0 auto', padding: '24px clamp(16px, 3vw, 28px) 80px' }}>
       {/* Hidden file input */}
       <input
         ref={fileInputRef}
@@ -119,10 +119,10 @@ export const TextStylometryPage: React.FC<TextStylometryPageProps> = ({
             <span style={{ fontSize: '11px', color: '#818cf8', letterSpacing: '1px', textTransform: 'uppercase', fontWeight: 700 }}>
               SPECIALIZED FORENSIC ENGINE 04
             </span>
-            <span style={{ fontSize: '11px', color: '#64748b' }}>&bull;</span>
-            <span style={{ fontSize: '11px', color: '#94a3b8' }}>TRANSFORMER ENCODERS + STYLOMETRIC PROFILER</span>
+            <span style={{ fontSize: '11px', color: 'var(--text-dim)' }}>&bull;</span>
+            <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>TRANSFORMER ENCODERS + STYLOMETRIC PROFILER</span>
           </div>
-          <h1 style={{ fontSize: '28px', fontWeight: 800, color: '#f8fafc', letterSpacing: '0.5px', marginTop: '2px' }}>
+          <h1 style={{ fontSize: '28px', fontWeight: 800, color: 'var(--text-main)', letterSpacing: '0.5px', marginTop: '2px' }}>
             TEXT STYLOMETRY &amp; AI-WRITING ASSESSMENT
           </h1>
         </div>
