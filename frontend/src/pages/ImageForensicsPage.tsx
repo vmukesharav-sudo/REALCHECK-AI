@@ -598,26 +598,26 @@ export const ImageForensicsPage: React.FC<ImageForensicsPageProps> = ({
               {/* B. AI vs Real Percentage Section: Equal 2-Column Layout */}
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginTop: '16px' }}>
                 <div>
-                  <div style={{ fontSize: '11px', fontWeight: 700, color: isAiDominant ? 'var(--risk-high)' : 'var(--text-muted)', letterSpacing: '0.8px', textTransform: 'uppercase' }}>
+                  <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--risk-high)', letterSpacing: '0.8px', textTransform: 'uppercase' }}>
                     AI-GENERATED
                   </div>
-                  <div style={{ fontSize: '32px', fontWeight: 800, fontFamily: 'var(--font-mono)', color: isAiDominant ? 'var(--risk-high)' : 'var(--text-main)', lineHeight: 1.1, marginTop: '4px' }}>
+                  <div style={{ fontSize: '36px', fontWeight: 800, fontFamily: 'var(--font-mono)', color: 'var(--risk-high)', lineHeight: 1, marginTop: '6px' }}>
                     {aiPercentage.toFixed(0)}%
                   </div>
                 </div>
                 <div style={{ textAlign: 'right' }}>
-                  <div style={{ fontSize: '11px', fontWeight: 700, color: !isAiDominant ? 'var(--risk-low)' : 'var(--text-muted)', letterSpacing: '0.8px', textTransform: 'uppercase' }}>
+                  <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--risk-low)', letterSpacing: '0.8px', textTransform: 'uppercase' }}>
                     REAL / AUTHENTIC
                   </div>
-                  <div style={{ fontSize: '32px', fontWeight: 800, fontFamily: 'var(--font-mono)', color: !isAiDominant ? 'var(--risk-low)' : 'var(--text-main)', lineHeight: 1.1, marginTop: '4px' }}>
+                  <div style={{ fontSize: '36px', fontWeight: 800, fontFamily: 'var(--font-mono)', color: 'var(--risk-low)', lineHeight: 1, marginTop: '6px' }}>
                     {realPercentage.toFixed(0)}%
                   </div>
                 </div>
               </div>
 
               {/* C. Probability Bar directly connected to percentages */}
-              <div style={{ marginTop: '8px' }}>
-                <div style={{ height: '8px', width: '100%', borderRadius: '4px', overflow: 'hidden', display: 'flex', background: 'var(--bg-body-pattern-1)', border: '1px solid var(--border-subtle)' }}>
+              <div style={{ marginTop: '10px' }}>
+                <div style={{ height: '10px', width: '100%', borderRadius: '5px', overflow: 'hidden', display: 'flex', background: 'var(--bg-body-pattern-1)', border: '1px solid var(--border-subtle)' }}>
                   <div
                     style={{
                       width: `${aiPercentage}%`,
@@ -635,9 +635,9 @@ export const ImageForensicsPage: React.FC<ImageForensicsPageProps> = ({
                     title={`Real Likelihood: ${realPercentage.toFixed(1)}%`}
                   />
                 </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '10px', color: 'var(--text-muted)', marginTop: '4px' }}>
-                  <span>AI likelihood</span>
-                  <span>Real likelihood</span>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '10px', marginTop: '5px', fontWeight: 600 }}>
+                  <span style={{ color: 'var(--risk-high)' }}>AI likelihood</span>
+                  <span style={{ color: 'var(--risk-low)' }}>Real likelihood</span>
                 </div>
               </div>
 
@@ -673,7 +673,7 @@ export const ImageForensicsPage: React.FC<ImageForensicsPageProps> = ({
               {/* E. Secondary Authenticity Score: Compact horizontal 2-column layout */}
               <div
                 style={{
-                  marginTop: '12px',
+                  marginTop: '14px',
                   paddingTop: '12px',
                   borderTop: '1px solid var(--border-subtle)',
                   display: 'flex',
@@ -681,20 +681,22 @@ export const ImageForensicsPage: React.FC<ImageForensicsPageProps> = ({
                   gap: '14px'
                 }}
               >
-                <ScoreMeter
-                  score={currentCase.authenticity_score}
-                  riskLevel={currentCase.risk_level}
-                  assessment={currentCase.assessment}
-                  confidenceScore={currentCase.confidence_score}
-                  size={56}
-                  hideDetails={true}
-                />
-                <div style={{ flex: 1 }}>
+                <div style={{ flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <ScoreMeter
+                    score={currentCase.authenticity_score}
+                    riskLevel={currentCase.risk_level}
+                    assessment={currentCase.assessment}
+                    confidenceScore={currentCase.confidence_score}
+                    size={58}
+                    hideDetails={true}
+                  />
+                </div>
+                <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ fontSize: '10px', fontWeight: 700, color: 'var(--text-dim)', letterSpacing: '0.6px', textTransform: 'uppercase' }}>
                     UNIFIED AUTHENTICITY SCORE
                   </div>
-                  <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px', marginTop: '2px' }}>
-                    <span style={{ fontSize: '18px', fontWeight: 800, fontFamily: 'var(--font-mono)', color: 'var(--text-main)' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '2px' }}>
+                    <span style={{ fontSize: '18px', fontWeight: 800, fontFamily: 'var(--font-mono)', color: 'var(--text-main)', lineHeight: 1 }}>
                       {currentCase.authenticity_score} / 100
                     </span>
                     <span
@@ -710,7 +712,7 @@ export const ImageForensicsPage: React.FC<ImageForensicsPageProps> = ({
                       {currentCase.risk_level}
                     </span>
                   </div>
-                  <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '2px' }}>
+                  <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '2px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                     {currentCase.authenticity_score >= 70 ? 'Consistent with optical sensor' : 'Anomalous synthetic artifacts'}
                   </div>
                 </div>
@@ -725,7 +727,7 @@ export const ImageForensicsPage: React.FC<ImageForensicsPageProps> = ({
                   gap: '8px'
                 }}
               >
-                <div style={{ background: 'var(--bg-card-solid)', border: '1px solid var(--border-subtle)', padding: '8px 10px', borderRadius: '6px' }}>
+                <div style={{ background: 'var(--bg-card-solid)', border: '1px solid var(--border-subtle)', padding: '8px 12px', borderRadius: '6px', minHeight: '52px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
                   <div style={{ fontSize: '9px', fontWeight: 700, color: 'var(--text-dim)', textTransform: 'uppercase', letterSpacing: '0.5px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                     AI GENERATION
                   </div>
@@ -734,7 +736,7 @@ export const ImageForensicsPage: React.FC<ImageForensicsPageProps> = ({
                   </div>
                 </div>
 
-                <div style={{ background: 'var(--bg-card-solid)', border: '1px solid var(--border-subtle)', padding: '8px 10px', borderRadius: '6px' }}>
+                <div style={{ background: 'var(--bg-card-solid)', border: '1px solid var(--border-subtle)', padding: '8px 12px', borderRadius: '6px', minHeight: '52px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
                   <div style={{ fontSize: '9px', fontWeight: 700, color: 'var(--text-dim)', textTransform: 'uppercase', letterSpacing: '0.5px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                     MANIPULATION RISK
                   </div>
@@ -743,7 +745,7 @@ export const ImageForensicsPage: React.FC<ImageForensicsPageProps> = ({
                   </div>
                 </div>
 
-                <div style={{ background: 'var(--bg-card-solid)', border: '1px solid var(--border-subtle)', padding: '8px 10px', borderRadius: '6px' }}>
+                <div style={{ background: 'var(--bg-card-solid)', border: '1px solid var(--border-subtle)', padding: '8px 12px', borderRadius: '6px', minHeight: '52px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
                   <div style={{ fontSize: '9px', fontWeight: 700, color: 'var(--text-dim)', textTransform: 'uppercase', letterSpacing: '0.5px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                     FORENSIC ANOMALY
                   </div>
@@ -752,7 +754,7 @@ export const ImageForensicsPage: React.FC<ImageForensicsPageProps> = ({
                   </div>
                 </div>
 
-                <div style={{ background: 'var(--bg-card-solid)', border: '1px solid var(--border-subtle)', padding: '8px 10px', borderRadius: '6px' }}>
+                <div style={{ background: 'var(--bg-card-solid)', border: '1px solid var(--border-subtle)', padding: '8px 12px', borderRadius: '6px', minHeight: '52px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
                   <div style={{ fontSize: '9px', fontWeight: 700, color: 'var(--text-dim)', textTransform: 'uppercase', letterSpacing: '0.5px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                     METADATA RISK
                   </div>

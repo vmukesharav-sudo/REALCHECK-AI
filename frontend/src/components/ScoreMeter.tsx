@@ -84,20 +84,33 @@ export const ScoreMeter: React.FC<ScoreMeterProps> = ({
             pointerEvents: 'none'
           }}
         >
-          <span style={{ fontSize: size * 0.11, color: 'var(--text-muted)', letterSpacing: '1px', textTransform: 'uppercase', fontWeight: 600 }}>
-            Authenticity
-          </span>
-          <div style={{ display: 'flex', alignItems: 'baseline' }}>
-            <span style={{ fontSize: size * 0.28, fontWeight: 800, fontFamily: 'var(--font-mono)', color: 'var(--text-main)' }}>
-              {score}
-            </span>
-            <span style={{ fontSize: size * 0.11, color: 'var(--text-dim)', fontFamily: 'var(--font-mono)', marginLeft: '2px' }}>
-              /100
-            </span>
-          </div>
-          <span style={{ fontSize: size * 0.08, color: 'var(--blue-soft)', fontFamily: 'var(--font-mono)' }}>
-            Conf: {Math.round(confidenceScore * 100)}%
-          </span>
+          {size >= 110 ? (
+            <>
+              <span style={{ fontSize: Math.max(9, size * 0.11), color: 'var(--text-muted)', letterSpacing: '1px', textTransform: 'uppercase', fontWeight: 600 }}>
+                Authenticity
+              </span>
+              <div style={{ display: 'flex', alignItems: 'baseline' }}>
+                <span style={{ fontSize: Math.round(size * 0.28), fontWeight: 800, fontFamily: 'var(--font-mono)', color: 'var(--text-main)' }}>
+                  {score}
+                </span>
+                <span style={{ fontSize: Math.round(size * 0.11), color: 'var(--text-dim)', fontFamily: 'var(--font-mono)', marginLeft: '2px' }}>
+                  /100
+                </span>
+              </div>
+              <span style={{ fontSize: Math.max(8, size * 0.08), color: 'var(--blue-soft)', fontFamily: 'var(--font-mono)' }}>
+                Conf: {Math.round(confidenceScore * 100)}%
+              </span>
+            </>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+              <span style={{ fontSize: `${Math.round(size * 0.36)}px`, fontWeight: 800, fontFamily: 'var(--font-mono)', color: strokeColor, lineHeight: 1 }}>
+                {score}
+              </span>
+              <span style={{ fontSize: `${Math.max(7, Math.round(size * 0.13))}px`, fontWeight: 700, color: 'var(--text-dim)', letterSpacing: '0.5px', marginTop: '1px' }}>
+                /100
+              </span>
+            </div>
+          )}
         </div>
       </div>
 
