@@ -113,6 +113,12 @@ export interface InvestigationResult {
   suspicious_regions?: SuspiciousRegion[];
   suspicious_segments?: SuspiciousTimeSegment[];
   text_metrics?: TextMetrics;
+  heatmap_data?: {
+    waveform_envelope?: number[];
+    model_status?: string;
+    latency_ms?: number;
+    [key: string]: any;
+  };
 
   why_result_explanation: string;
   top_contributing_signals: {

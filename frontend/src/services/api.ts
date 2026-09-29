@@ -75,7 +75,14 @@ class ForensicApiService {
       body: formData,
     });
     if (!res.ok) {
-      throw new Error(`Failed to analyze ${mediaType}`);
+      let errorMsg = `Failed to analyze ${mediaType}`;
+      try {
+        const errorData = await res.json();
+        if (errorData.detail) errorMsg = errorData.detail;
+      } catch (e) {
+        // ignore
+      }
+      throw new Error(errorMsg);
     }
     return await res.json();
   }

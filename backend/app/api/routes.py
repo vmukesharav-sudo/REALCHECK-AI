@@ -133,9 +133,23 @@ async def analyze_audio(
     if sample_id and sample_id in INVESTIGATIONS_DB:
         return INVESTIGATIONS_DB[sample_id]
         
-    file_name = file.filename if file else "uploaded_audio.wav"
-    size_str = f"{file.size / (1024*1024):.1f} MB" if file and file.size else "4.8 MB"
-    result = aud_detector.analyze(None, {"file_name": file_name, "file_size": size_str})
+    if not file:
+        raise HTTPException(status_code=400, detail="No file or sample_id provided")
+
+    file_name = file.filename or "uploaded_audio.wav"
+    file_bytes = await file.read()
+    raw_size = len(file_bytes)
+    size_str = f"{raw_size / 1024:.1f} KB" if raw_size < 1024 * 1024 else f"{raw_size / (1024*1024):.1f} MB"
+    
+    from fastapi.concurrency import run_in_threadpool
+    from ..detectors.audio.features import AudioValidationException
+    try:
+        result = await run_in_threadpool(aud_detector.analyze, file_bytes, {"file_name": file_name, "file_size": size_str})
+    except AudioValidationException as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Unexpected audio processing error: {str(e)}")
+        
     INVESTIGATIONS_DB[result.case_id] = result
     return result
 

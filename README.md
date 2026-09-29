@@ -415,7 +415,66 @@ REALCHECK AI includes a built-in **High-Fidelity Demo Mode**:
 
 ---
 
-## 28. License
+## 28. Audio Forensics Module Documentation
+
+The Audio Forensics module provides acoustic anomaly detection and metadata analysis.
+
+### Setup and Testing
+To run audio features, ensure librosa and soundfile are installed via `requirements.txt`.
+To run tests, execute:
+```bash
+cd backend
+python -m pytest test_audio.py test_api_audio.py -v
+```
+
+### Supported Formats
+- WAV, MP3, FLAC, OGG. 
+- M4A / AAC requires system FFmpeg to be installed.
+
+### Environment Variables & Model Setup
+- Deepfake Voice Model: Currently running in heuristic mode (No pretrained model available by default). To use a deep model, install PyTorch and provide `weights_path` in `detector.py`.
+- No extra environment variables are needed for basic acoustic extraction.
+
+### API Endpoint Example
+**POST `/api/analyze/audio`**
+Uploads an audio file for forensic acoustic analysis.
+
+**Request:**
+```http
+POST /api/analyze/audio
+Content-Type: multipart/form-data
+file: [uploaded_audio.wav]
+```
+
+**Response (JSON):**
+```json
+{
+  "case_id": "RC-2026-0044",
+  "media_type": "AUDIO",
+  "assessment": "Unverified (No Model Available)",
+  "authenticity_score": 50,
+  "metadata": {
+    "file_name": "uploaded_audio.wav",
+    "mime_type": "audio/wav",
+    "duration": "10.0s (16000Hz)"
+  },
+  "signals": [
+     {
+       "name": "Pitch & Prosodic Dynamics",
+       "category": "acoustic",
+       "status": "Not Assessed"
+     }
+  ]
+}
+```
+
+### Known Limitations
+- The system currently extracts acoustic features but does not run a full pretrained classification model for deepfakes. Results are marked as "Unverified" until a calibrated PyTorch/ONNX model is added.
+- M4A is not supported natively without FFmpeg installed on the host machine.
+
+---
+
+## 29. License
 
 Distributed under the **MIT License**. See [LICENSE](LICENSE) for more information.
 
