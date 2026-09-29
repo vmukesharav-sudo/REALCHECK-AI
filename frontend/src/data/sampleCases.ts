@@ -864,5 +864,238 @@ export const SAMPLE_CASES: Record<string, InvestigationResult> = {
       { signal: 'Semantic Coherence Score', impact: 'Weak', weight: '10%' }
     ],
     limitations: 'Non-native English writing, technical jargon, or strictly standardized business templates can exhibit low burstiness and artificially trigger elevated AI-likelihood indicators.'
+  },
+
+  // 7. AUDIO: Authentic Human Speech (RC-2026-0048)
+  'RC-2026-0048': {
+    case_id: 'RC-2026-0048',
+    media_type: 'AUDIO',
+    file_name: 'studio_interview_human_speech.wav',
+    sample_type: 'real',
+    assessment: 'Likely Authentic',
+    authenticity_score: 94,
+    risk_level: 'Low Risk',
+    confidence_level: 'High',
+    confidence_score: 0.93,
+    is_demo_analysis: true,
+    disclaimer: 'Prototype / Demonstration Analysis. Forensic indicators show natural acoustic harmonics and physiological respiration.',
+    timestamp: '2026-09-24T08:50:00Z',
+    ai_generation_probability: 5.0,
+    manipulation_risk: 7.0,
+    forensic_anomaly_score: 8.0,
+    metadata_risk_score: 6.0,
+    signals: [
+      {
+        name: 'Physiological Pitch Jitter & Shimmer',
+        category: 'acoustic',
+        score: 6.0,
+        weight: 0.35,
+        strength: 'Normal',
+        status: 'Within Normal Variance',
+        explanation: 'Natural micro-perturbations (0.85% jitter, 2.3% shimmer) consistent with biological vocal fold kinematics.',
+        model_contribution_pct: 40.0
+      },
+      {
+        name: 'Natural Pulmonary Respiration Cadence',
+        category: 'acoustic',
+        score: 5.0,
+        weight: 0.30,
+        strength: 'Normal',
+        status: 'Within Normal Variance',
+        explanation: 'Spontaneous inspiratory breath cycles detected before long complex subordinate clauses.',
+        model_contribution_pct: 35.0
+      },
+      {
+        name: 'Acoustic Phase Linearity',
+        category: 'frequency',
+        score: 8.0,
+        weight: 0.20,
+        strength: 'Normal',
+        status: 'Within Normal Variance',
+        explanation: 'Harmonic overtone decay aligns with room acoustic reverberation models without neural vocoder discontinuities.',
+        model_contribution_pct: 15.0
+      },
+      {
+        name: 'Broadcast Metadata Header',
+        category: 'metadata',
+        score: 6.0,
+        weight: 0.15,
+        strength: 'Normal',
+        status: 'Within Normal Variance',
+        explanation: 'Broadcast Wave Format (BWF) chunks intact with linear 24-bit 48kHz PCM capture metadata.',
+        model_contribution_pct: 10.0
+      }
+    ],
+    evidence_breakdown: [
+      {
+        title: 'Voice Clone Risk',
+        status: 'Natural Biomechanics',
+        score: 5.0,
+        risk: 'Low Risk',
+        explanation: 'No neural synthesis artifacts, pitch quantization, or vocoder phase drift.',
+        category: 'synthetic_voice'
+      },
+      {
+        title: 'Acoustic Anomaly',
+        status: 'Natural Resonance',
+        score: 8.0,
+        risk: 'Low Risk',
+        explanation: 'Continuous vocal tract resonance and natural formant bandwidth transitions.',
+        category: 'acoustic'
+      },
+      {
+        title: 'Manipulation / Splice',
+        status: 'Continuous Recording',
+        score: 7.0,
+        risk: 'Low Risk',
+        explanation: 'Ambient room noise floor remains steady without edits or spliced acoustic boundaries.',
+        category: 'splice'
+      }
+    ],
+    suspicious_segments: [
+      {
+        start_time: '00:00',
+        end_time: '00:30',
+        start_seconds: 0.0,
+        end_seconds: 30.0,
+        risk_level: 'Normal',
+        anomaly_type: 'Authentic Speech Flow',
+        description: 'Consistent vocal tract harmonics and natural human breath intervals throughout recording.'
+      }
+    ],
+    metadata: {
+      file_name: 'studio_interview_human_speech.wav',
+      file_size_formatted: '5.2 MB',
+      mime_type: 'audio/wav',
+      duration: '00:30',
+      creation_time: '2026-09-22 14:20:00 UTC',
+      software_signature: 'Sound Devices 833 / 24-48k',
+      camera_model: undefined,
+      exif_available: true,
+      editing_software_indicator: 'None / Hardware Master',
+      hash_sha256: '881723a190283719827391823719823719827391823719823719823719823719',
+      metadata_risk_score: 6.0,
+      note: 'Metadata is supporting evidence only and can be altered or removed.'
+    },
+    why_result_explanation: 'Acoustic feature analysis confirms physiological vocal fold pitch micro-jitter, spontaneous pulmonary breath pauses, and realistic room acoustic reverberation.',
+    top_contributing_signals: [
+      { signal: 'Physiological Pitch Jitter & Shimmer', impact: 'Strong Support', weight: '40%' },
+      { signal: 'Pulmonary Respiration Cadence', impact: 'Strong Support', weight: '35%' },
+      { signal: 'Acoustic Phase Linearity', impact: 'Moderate Support', weight: '15%' },
+      { signal: 'Broadcast Metadata Header', impact: 'Normal Support', weight: '10%' }
+    ],
+    limitations: 'High-end generative voice clones with simulated breath and stochastic jitter models continue to evolve.'
+  },
+
+  // 8. TEXT: Authentic Human Writing (RC-2026-0049)
+  'RC-2026-0049': {
+    case_id: 'RC-2026-0049',
+    media_type: 'TEXT',
+    file_name: 'developer_retrospective_human.txt',
+    sample_type: 'real',
+    assessment: 'Likely Authentic',
+    authenticity_score: 91,
+    risk_level: 'Low Risk',
+    confidence_level: 'High',
+    confidence_score: 0.88,
+    is_demo_analysis: true,
+    disclaimer: 'Prototype / Demonstration Analysis. Text exhibits high natural burstiness, vocabulary variation, and informal syntactic shifts.',
+    timestamp: '2026-09-24T08:52:00Z',
+    ai_generation_probability: 9.0,
+    manipulation_risk: 11.0,
+    forensic_anomaly_score: 12.0,
+    metadata_risk_score: 4.0,
+    signals: [
+      {
+        name: 'Natural Syntactic Burstiness',
+        category: 'stylometric',
+        score: 8.0,
+        weight: 0.35,
+        strength: 'Normal',
+        status: 'Within Normal Variance',
+        explanation: 'Sentence lengths oscillate naturally (std dev of 11.4 words), shifting between short fragments and long conversational compound sentences.',
+        affected_region_or_time: 'Full text',
+        model_contribution_pct: 42.0
+      },
+      {
+        name: 'Lexical Diversity & Idiomatic Expressions',
+        category: 'nlp',
+        score: 10.0,
+        weight: 0.30,
+        strength: 'Normal',
+        status: 'Within Normal Variance',
+        explanation: 'Rich type-token ratio with idiosyncratic colloquialisms, technical slang, and spontaneous self-corrections.',
+        affected_region_or_time: 'Full body',
+        model_contribution_pct: 35.0
+      },
+      {
+        name: 'Absence of Synthetic Transitional Tropes',
+        category: 'stylometric',
+        score: 7.0,
+        weight: 0.20,
+        strength: 'Normal',
+        status: 'Within Normal Variance',
+        explanation: 'Zero instances of stereotypical LLM boilerplate transitions (e.g., \'delve\', \'testament to\', \'furthermore\').',
+        affected_region_or_time: 'Transitions',
+        model_contribution_pct: 15.0
+      }
+    ],
+    evidence_breakdown: [
+      {
+        title: 'Syntactic Variance (Burstiness)',
+        status: 'High Natural Variety',
+        score: 8.0,
+        risk: 'Low Risk',
+        explanation: 'Dynamic human sentence cadence with natural syntactic unpredictability.',
+        category: 'syntax'
+      },
+      {
+        title: 'Trope & Boilerplate Absence',
+        status: 'No AI Markers',
+        score: 7.0,
+        risk: 'Low Risk',
+        explanation: 'Writing is free of standard synthetic opening/closing formulaic summaries.',
+        category: 'stylometry'
+      },
+      {
+        title: 'Vocabulary Richness (TTR)',
+        status: 'Diverse Lexicon',
+        score: 10.0,
+        risk: 'Low Risk',
+        explanation: 'High lexical entropy and authentic technical developer phrasing.',
+        category: 'vocabulary'
+      }
+    ],
+    metadata: {
+      file_name: 'developer_retrospective_human.txt',
+      file_size_formatted: '3.8 KB',
+      mime_type: 'text/plain',
+      creation_time: '2026-09-23 18:10:00 UTC',
+      software_signature: 'UTF-8 Plain Text',
+      camera_model: undefined,
+      exif_available: false,
+      editing_software_indicator: 'None',
+      hash_sha256: '77291a271891b29a27891ce3b0c44298fc1c149afbf4c8996fb92427ae41e881',
+      metadata_risk_score: 4.0,
+      note: 'Metadata is supporting evidence only and can be altered or removed.'
+    },
+    text_metrics: {
+      word_count: 512,
+      sentence_count: 28,
+      avg_sentence_length: 18.2,
+      sentence_length_std_dev: 11.4,
+      perplexity_score: 48.6,
+      burstiness_score: 0.76,
+      repeated_phrases_count: 1,
+      vocabulary_richness_ttr: 0.72,
+      analyzed_text_sample: 'We ran into a nasty race condition in the worker queue yesterday afternoon. Took us three hours to realize Redis wasn\'t properly acknowledging tasks during server restarts. Fixed it by wrapping the listener in an explicit transaction block, but honestly we probably should have caught that during staging. Going to add an integration test for it first thing tomorrow.'
+    },
+    why_result_explanation: 'Text exhibits high burstiness (0.76) and wide sentence-length variance (std dev 11.4). Dynamic phrasing, natural colloquialisms, and lack of AI formulaic transitional templates strongly indicate authentic human drafting.',
+    top_contributing_signals: [
+      { signal: 'Natural Syntactic Burstiness', impact: 'Strong Support', weight: '42%' },
+      { signal: 'Lexical Diversity & Slang', impact: 'Strong Support', weight: '35%' },
+      { signal: 'Absence of Synthetic Tropes', impact: 'Moderate Support', weight: '15%' }
+    ],
+    limitations: 'Advanced human-in-the-loop prompt engineering can sometimes mimic informal human burstiness.'
   }
 };

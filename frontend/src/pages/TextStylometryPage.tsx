@@ -70,14 +70,11 @@ export const TextStylometryPage: React.FC<TextStylometryPageProps> = ({
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    if (!initialCaseId) {
-        setIsLoading(false);
-        return;
-    }
+    const caseToLoad = initialCaseId || 'RC-2026-0045';
     let isMounted = true;
     setIsLoading(true);
     setError(null);
-    forensicApi.getInvestigation(initialCaseId)
+    forensicApi.getInvestigation(caseToLoad)
       .then(data => {
         if (isMounted) {
           setCurrentCase(data);
@@ -92,6 +89,18 @@ export const TextStylometryPage: React.FC<TextStylometryPageProps> = ({
       });
     return () => { isMounted = false; };
   }, [initialCaseId]);
+
+  const handleLoadSample = (caseId: string) => {
+    setIsScanning(true);
+    setError(null);
+    forensicApi.analyzeMedia('TEXT', undefined, caseId)
+      .then(res => {
+        setCurrentCase(res);
+        setTextInput(res.text_metrics?.analyzed_text_sample || '');
+      })
+      .catch(err => setError(err.message))
+      .finally(() => setIsScanning(false));
+  };
 
 
 
@@ -267,6 +276,20 @@ export const TextStylometryPage: React.FC<TextStylometryPageProps> = ({
             </div>
           </div>
 
+          {/* Sample switcher */}
+          <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border-subtle)', borderRadius: '10px', padding: '14px 16px' }}>
+            <div style={{ fontSize: '11px', color: 'var(--text-dim)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '10px' }}>Load sample case</div>
+            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+              <button onClick={() => handleLoadSample('RC-2026-0045')}
+                style={{ fontSize: '12px', padding: '6px 12px', background: currentCase?.case_id === 'RC-2026-0045' ? 'rgba(0,240,255,0.1)' : 'var(--bg-body-pattern-1)', border: currentCase?.case_id === 'RC-2026-0045' ? '1px solid var(--cyan-primary)' : '1px solid var(--border-subtle)', color: 'var(--text-muted)', borderRadius: '6px', cursor: 'pointer' }}>
+                AI-Assisted Executive Memo
+              </button>
+              <button onClick={() => handleLoadSample('RC-2026-0049')}
+                style={{ fontSize: '12px', padding: '6px 12px', background: currentCase?.case_id === 'RC-2026-0049' ? 'rgba(0,240,255,0.1)' : 'var(--bg-body-pattern-1)', border: currentCase?.case_id === 'RC-2026-0049' ? '1px solid var(--cyan-primary)' : '1px solid var(--border-subtle)', color: 'var(--text-muted)', borderRadius: '6px', cursor: 'pointer' }}>
+                Human Developer Retrospective
+              </button>
+            </div>
+          </div>
 
         </div>
 

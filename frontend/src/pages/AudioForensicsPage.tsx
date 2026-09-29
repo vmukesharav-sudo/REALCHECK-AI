@@ -86,14 +86,11 @@ export const AudioForensicsPage: React.FC<AudioForensicsPageProps> = ({
   const audioRef = useRef<HTMLAudioElement>(null);
 
   useEffect(() => {
-    if (!initialCaseId) {
-        setIsLoading(false);
-        return;
-    }
+    const caseToLoad = initialCaseId || 'RC-2026-0044';
     let isMounted = true;
     setIsLoading(true);
     setError(null);
-    forensicApi.getInvestigation(initialCaseId)
+    forensicApi.getInvestigation(caseToLoad)
       .then(data => { if (isMounted) setCurrentCase(data); })
       .catch(err => { if (isMounted) setError(err.message || 'Failed to load case'); })
       .finally(() => { if (isMounted) setIsLoading(false); });
@@ -526,11 +523,11 @@ export const AudioForensicsPage: React.FC<AudioForensicsPageProps> = ({
             <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
               <button onClick={() => handleLoadSample('RC-2026-0044')}
                 style={{ fontSize: '12px', padding: '6px 12px', background: currentCase.case_id === 'RC-2026-0044' && !uploadedAudioSrc ? 'rgba(0,240,255,0.1)' : 'var(--bg-body-pattern-1)', border: currentCase.case_id === 'RC-2026-0044' && !uploadedAudioSrc ? '1px solid var(--cyan-primary)' : '1px solid var(--border-subtle)', color: 'var(--text-muted)', borderRadius: '6px', cursor: 'pointer' }}>
-                Synthetic Clone
+                Synthetic Voice Clone (AI)
               </button>
               <button onClick={() => handleLoadSample('RC-2026-0048')}
                 style={{ fontSize: '12px', padding: '6px 12px', background: currentCase.case_id === 'RC-2026-0048' && !uploadedAudioSrc ? 'rgba(0,240,255,0.1)' : 'var(--bg-body-pattern-1)', border: currentCase.case_id === 'RC-2026-0048' && !uploadedAudioSrc ? '1px solid var(--cyan-primary)' : '1px solid var(--border-subtle)', color: 'var(--text-muted)', borderRadius: '6px', cursor: 'pointer' }}>
-                Human Speech
+                Human Speech Recording (Authentic)
               </button>
               <button onClick={() => fileInputRef.current?.click()}
                 style={{ fontSize: '12px', padding: '6px 12px', background: 'var(--bg-body-pattern-1)', border: '1px solid var(--border-subtle)', color: 'var(--text-muted)', borderRadius: '6px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '5px' }}>

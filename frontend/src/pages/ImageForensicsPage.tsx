@@ -74,14 +74,11 @@ export const ImageForensicsPage: React.FC<ImageForensicsPageProps> = ({
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    if (!initialCaseId) {
-        setIsLoading(false);
-        return;
-    }
+    const caseToLoad = initialCaseId || 'RC-2026-0042';
     let isMounted = true;
     setIsLoading(true);
     setError(null);
-    forensicApi.getInvestigation(initialCaseId)
+    forensicApi.getInvestigation(caseToLoad)
       .then(data => { if (isMounted) setCurrentCase(data); })
       .catch(err => { if (isMounted) setError(err.message || 'Failed to load case'); })
       .finally(() => { if (isMounted) setIsLoading(false); });
@@ -385,11 +382,11 @@ export const ImageForensicsPage: React.FC<ImageForensicsPageProps> = ({
             <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
               <button onClick={() => handleLoadSample('RC-2026-0042')}
                 style={{ fontSize: '12px', padding: '6px 12px', background: currentCase.case_id === 'RC-2026-0042' && !uploadedImageSrc ? 'rgba(0,240,255,0.1)' : 'var(--bg-body-pattern-1)', border: currentCase.case_id === 'RC-2026-0042' && !uploadedImageSrc ? '1px solid var(--cyan-primary)' : '1px solid var(--border-subtle)', color: 'var(--text-muted)', borderRadius: '6px', cursor: 'pointer' }}>
-                AI-Generated
+                Synthetic Diffusion (AI)
               </button>
               <button onClick={() => handleLoadSample('RC-2026-0046')}
                 style={{ fontSize: '12px', padding: '6px 12px', background: currentCase.case_id === 'RC-2026-0046' && !uploadedImageSrc ? 'rgba(0,240,255,0.1)' : 'var(--bg-body-pattern-1)', border: currentCase.case_id === 'RC-2026-0046' && !uploadedImageSrc ? '1px solid var(--cyan-primary)' : '1px solid var(--border-subtle)', color: 'var(--text-muted)', borderRadius: '6px', cursor: 'pointer' }}>
-                Authentic
+                Nikon D850 Raw (Authentic)
               </button>
               <button onClick={() => fileInputRef.current?.click()}
                 style={{ fontSize: '12px', padding: '6px 12px', background: 'var(--bg-body-pattern-1)', border: '1px solid var(--border-subtle)', color: 'var(--text-muted)', borderRadius: '6px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '5px' }}>
