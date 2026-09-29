@@ -94,7 +94,7 @@ export const ScoreMeter: React.FC<ScoreMeterProps> = ({
             </span>
           </div>
           <span style={{ fontSize: size * 0.08, color: 'var(--blue-soft)', fontFamily: 'var(--font-mono)' }}>
-            Conf: {Math.round(confidenceScore * 100)}%
+            Conf: {confidenceScore > 0 ? `${Math.round(confidenceScore * 100)}%` : 'Unavailable'}
           </span>
         </div>
       </div>

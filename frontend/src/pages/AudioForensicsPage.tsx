@@ -412,10 +412,13 @@ export const AudioForensicsPage: React.FC<AudioForensicsPageProps> = ({
                       if (audioRef.current) audioRef.current.currentTime = targetSec;
                     }}
                   >
-                    {Array.from({ length: 60 }).map((_, i) => {
-                      const barTime = (i / 60) * actualDuration;
+                    {(currentCase?.heatmap_data?.waveform_envelope && Array.isArray(currentCase.heatmap_data.waveform_envelope) && currentCase.heatmap_data.waveform_envelope.length > 0
+                      ? currentCase.heatmap_data.waveform_envelope 
+                      : Array.from({ length: 60 }).map((_, i) => 0.5 + (Math.sin(i * 0.8) * 0.25))
+                    ).map((val: number, i: number, arr: number[]) => {
+                      const barTime = (i / arr.length) * actualDuration;
                       const seg = segments.find(s => barTime >= s.start_seconds && barTime <= s.end_seconds);
-                      const height = 30 + Math.sin(i * 0.8) * 25 + Math.cos(i * 1.2) * 20;
+                      const height = Math.max(5, val * 100);
 
                       return (
                         <div
