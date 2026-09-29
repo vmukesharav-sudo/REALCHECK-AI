@@ -57,7 +57,12 @@ function AppLayout() {
     if (staticTabs.includes(tab)) {
       navigate(`/${tab}`);
     } else {
-      navigate(`/${tab}${caseId ? `/${caseId}` : `/${activeCaseId}`}`);
+      const targetCaseId = caseId || activeCaseId;
+      if (targetCaseId && targetCaseId !== 'undefined' && targetCaseId !== 'null') {
+        navigate(`/${tab}/${targetCaseId}`);
+      } else {
+        navigate(`/${tab}`);
+      }
     }
   };
 
@@ -123,8 +128,8 @@ function AppLayout() {
             
             <Route path="/models" element={<ModelInsightsPage />} />
             
-            <Route path="/reports" element={<ForensicReportsPage key={activeCaseId} selectedCaseId={activeCaseId} onNavigate={handleNavigate} />} />
-            <Route path="/reports/:caseId" element={<ForensicReportsPage key={activeCaseId} selectedCaseId={activeCaseId} onNavigate={handleNavigate} />} />
+            <Route path="/reports" element={<ForensicReportsPage selectedCaseId={activeCaseId} onNavigate={handleNavigate} />} />
+            <Route path="/reports/:caseId" element={<ForensicReportsPage selectedCaseId={activeCaseId} onNavigate={handleNavigate} />} />
             
             <Route path="/about" element={<ArchitectureAboutPage key={activeCaseId} onNavigate={handleNavigate} />} />
             <Route path="/settings" element={<SettingsPage />} />
