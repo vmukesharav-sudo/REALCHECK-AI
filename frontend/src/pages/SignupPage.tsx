@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { ShieldCheck, Crosshair, Lock, Mail, Eye, EyeOff, AlertCircle, User } from 'lucide-react';
+import { ForensicBackground } from '../components/ForensicBackground';
 
 export const SignupPage: React.FC = () => {
   const [name, setName] = useState('');
@@ -73,7 +74,9 @@ export const SignupPage: React.FC = () => {
       minHeight: '100vh',
       display: 'flex',
       backgroundColor: 'var(--bg-deep)',
+      position: 'relative'
     }}>
+      <ForensicBackground />
       {/* Left: Branding & Visual (Desktop Only) */}
       <div className="desktop-only-flex" style={{
         flex: 1,

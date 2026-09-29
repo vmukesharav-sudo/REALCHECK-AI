@@ -22,6 +22,7 @@ import { SettingsPage } from './pages/SettingsPage';
 import { InvestigationProvider, useInvestigation } from './contexts/InvestigationContext';
 import { AuthProvider } from './contexts/AuthContext';
 import { ProtectedRoute } from './components/ProtectedRoute';
+import { ForensicBackground } from './components/ForensicBackground';
 
 function AppLayout() {
   const location = useLocation();
@@ -63,7 +64,8 @@ function AppLayout() {
   };
 
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', backgroundColor: 'var(--bg-deep)' }}>
+    <div style={{ minHeight: '100vh', display: 'flex', backgroundColor: 'var(--bg-deep)', position: 'relative' }}>
+      <ForensicBackground />
       <Sidebar 
         currentTab={currentTab} 
         onTabChange={handleNavigate}
