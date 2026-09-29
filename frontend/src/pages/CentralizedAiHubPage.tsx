@@ -1,16 +1,5 @@
 import React, { useState } from 'react';
-import { 
-  Network, 
-  Layers, 
-  Cpu, 
-  ShieldCheck, 
-  ArrowDown, 
-  CheckCircle, 
-  Activity, 
-  Sparkles,
-  Info,
-  ChevronRight
-} from 'lucide-react';
+import { ArrowDown } from 'lucide-react';
 
 interface CentralizedAiHubPageProps {
   onNavigate: (tab: string) => void;

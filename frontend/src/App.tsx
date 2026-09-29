@@ -103,6 +103,8 @@ function AppLayout() {
             
             <Route path="/workspace" element={<InvestigationWorkspacePage key={activeCaseId} onNavigate={handleNavigate} onSelectCase={handleSelectCase} onGenerateReport={handleGenerateReport} />} />
             <Route path="/workspace/:caseId" element={<InvestigationWorkspacePage key={activeCaseId} onNavigate={handleNavigate} onSelectCase={handleSelectCase} onGenerateReport={handleGenerateReport} />} />
+            <Route path="/cases" element={<InvestigationWorkspacePage key={activeCaseId} onNavigate={handleNavigate} onSelectCase={handleSelectCase} onGenerateReport={handleGenerateReport} />} />
+            <Route path="/cases/:caseId" element={<InvestigationWorkspacePage key={activeCaseId} onNavigate={handleNavigate} onSelectCase={handleSelectCase} onGenerateReport={handleGenerateReport} />} />
             
             <Route path="/ai-hub" element={<CentralizedAiHubPage key={activeCaseId} onNavigate={handleNavigate} />} />
             <Route path="/ai-hub/:caseId" element={<CentralizedAiHubPage key={activeCaseId} onNavigate={handleNavigate} />} />
