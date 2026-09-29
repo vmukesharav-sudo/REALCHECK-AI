@@ -27,7 +27,7 @@ from ...schemas.forensics import (
     ForensicSignal,
     EvidenceCard,
     MetadataAnalysis,
-    SuspiciousTimeSegment
+    SuspiciousTimeSegment,
 )
 
 class VideoDetector(BaseDetector):
