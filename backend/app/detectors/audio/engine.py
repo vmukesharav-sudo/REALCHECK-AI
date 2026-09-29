@@ -62,41 +62,54 @@ class AudioModelEngine:
         mean_cent = features.get("mean_cent", 2000.0)
         mean_rolloff_85 = features.get("mean_rolloff_85", 3500.0)
         mean_flatness = features.get("mean_flatness", 0.05)
-        mean_mfcc_var = features.get("mean_mfcc_var", 150.0)
         mean_f0 = features.get("mean_f0", 0.0)
         std_f0 = features.get("std_f0", 0.0)
-        voiced_ratio = features.get("voiced_ratio", 0.0)
+        f0_min = features.get("f0_min", 0.0)
+        f0_max = features.get("f0_max", 0.0)
+        unvoiced_ratio = features.get("unvoiced_ratio", 1.0)
         clipping_ratio = features.get("clipping_ratio", 0.0)
+        period_jitter_pct = features.get("period_jitter_pct", 0.0)
+        spectral_flux = features.get("spectral_flux", 0.0)
+        high_freq_energy = features.get("high_freq_energy_ratio", 0.0)
+
+        # Determine signal status based on available pitch
+        jitter_status = "Not Measurable (Insufficient Voiced Frames)"
+        jitter_exp = "Signal quality or lack of human speech prevents reliable cycle-to-cycle jitter measurement."
+        if unvoiced_ratio < 0.8 and mean_f0 > 0:
+            jitter_status = "Observed"
+            jitter_exp = f"Micro-jitter (cycle-to-cycle variation): {period_jitter_pct:.2f}%. Normal human speech typically contains some micro-jitter. Synthetic voices may lack it, but heuristics alone cannot prove synthesis."
+
+        pitch_exp = f"Mean F0: {mean_f0:.1f} Hz, Range: {f0_min:.1f} - {f0_max:.1f} Hz. Unvoiced: {unvoiced_ratio*100:.1f}%."
 
         signals = [
             ForensicSignal(
-                name="Pitch & Prosodic Dynamics",
+                name="Pitch & Micro-Jitter (Prosody)",
                 category="acoustic",
                 score=0.0,
                 weight=0.0,
                 strength="Information Only",
-                status="Not Assessed",
-                explanation=f"Pitch std dev: {std_f0:.1f} Hz, Mean f0: {mean_f0:.1f} Hz. Deepfake analysis requires a trained model.",
+                status=jitter_status if mean_f0 > 0 else "Inconclusive",
+                explanation=f"{pitch_exp} {jitter_exp}",
                 model_contribution_pct=0.0
             ),
             ForensicSignal(
-                name="Spectral Properties",
+                name="Spectral Anomalies & Energy",
                 category="frequency",
                 score=0.0,
                 weight=0.0,
                 strength="Information Only",
-                status="Not Assessed",
-                explanation=f"85% rolloff at {mean_rolloff_85:.0f} Hz. Flatness: {mean_flatness:.3f}. Centroid: {mean_cent:.0f} Hz.",
+                status="Observed",
+                explanation=f"Spectral Flux: {spectral_flux:.3f}. High-freq Energy Ratio (>4kHz): {high_freq_energy*100:.1f}%. Flatness: {mean_flatness:.3f}. Unusual energy distributions can indicate synthetic vocoders or poor recording quality.",
                 model_contribution_pct=0.0
             ),
             ForensicSignal(
-                name="Dynamic Energy",
+                name="Waveform & Clipping Dynamics",
                 category="acoustic",
                 score=0.0,
                 weight=0.0,
                 strength="Information Only",
-                status="Not Assessed",
-                explanation=f"Dynamic range: {dynamic_range_db:.1f} dB. Silence ratio: {silence_ratio*100:.1f}%. Clipping: {clipping_ratio*100:.1f}%.",
+                status="Observed" if clipping_ratio == 0 else "Possible Indicator",
+                explanation=f"Dynamic range: {dynamic_range_db:.1f} dB. Silence ratio: {silence_ratio*100:.1f}%. Clipping ratio: {clipping_ratio*100:.1f}%. Heavy clipping or zero silence can degrade acoustic forensics.",
                 model_contribution_pct=0.0
             ),
             ForensicSignal(

@@ -39,7 +39,64 @@ def test_audio_detector_empty_file():
     os.remove("test_real.wav")
     os.remove("test_empty.wav")
 
+def test_feature_extractor_sine_wave():
+    from app.detectors.audio.features import AudioFeatureExtractor
+    import librosa
+    
+    extractor = AudioFeatureExtractor()
+    sr = 16000
+    duration = 1.0
+    t = np.linspace(0, duration, int(sr * duration))
+    # 440 Hz sine wave with 0.8 amplitude to prevent clipping
+    y = 0.8 * np.sin(2 * np.pi * 440 * t)
+    
+    features = extractor.extract_features(y, sr, duration)
+    
+    # Assert pitch is around 440 Hz
+    assert 435 < features["mean_f0"] < 445
+    assert features["voiced_ratio"] > 0.8
+    # Assert very low jitter for perfect sine wave
+    assert features["period_jitter_pct"] < 5.0
+    # Assert zero clipping
+    assert features["clipping_ratio"] == 0.0
+
+def test_feature_extractor_silence():
+    from app.detectors.audio.features import AudioFeatureExtractor
+    
+    extractor = AudioFeatureExtractor()
+    sr = 16000
+    duration = 1.0
+    y = np.zeros(int(sr * duration))
+    
+    features = extractor.extract_features(y, sr, duration)
+    
+    # Assert low energy and high silence ratio
+    assert features["mean_rms"] < 1e-4
+    assert features["silence_ratio"] > 0.9
+    # Unvoiced ratio should be 1.0
+    assert features["unvoiced_ratio"] == 1.0
+
+def test_feature_extractor_mixed_frequencies():
+    from app.detectors.audio.features import AudioFeatureExtractor
+    
+    extractor = AudioFeatureExtractor()
+    sr = 16000
+    duration = 1.0
+    t = np.linspace(0, duration, int(sr * duration))
+    # Mix of 200 Hz and 5000 Hz (high freq)
+    y = np.sin(2 * np.pi * 200 * t) + 0.5 * np.sin(2 * np.pi * 5000 * t)
+    
+    features = extractor.extract_features(y, sr, duration)
+    
+    # Should have some high frequency energy
+    assert features["high_freq_energy_ratio"] > 0.05
+    # Should not be entirely flat
+    assert features["mean_flatness"] < 1.0
+
 if __name__ == "__main__":
     test_audio_detector_real_file()
     test_audio_detector_empty_file()
+    test_feature_extractor_sine_wave()
+    test_feature_extractor_silence()
+    test_feature_extractor_mixed_frequencies()
     print("All tests passed successfully.")

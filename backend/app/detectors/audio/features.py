@@ -208,7 +208,10 @@ class AudioFeatureExtractor:
         max_rms = float(np.max(rms)) if len(rms) > 0 else 1e-4
         min_rms = float(np.min(rms)) if len(rms) > 0 else 1e-4
         dynamic_range_db = float(20 * np.log10(max(1e-4, max_rms) / max(1e-6, min_rms + 1e-6)))
-        silence_ratio = float(np.mean(rms < (0.05 * max_rms)))
+        if max_rms < 1e-5:
+            silence_ratio = 1.0
+        else:
+            silence_ratio = float(np.mean(rms < (0.05 * max_rms)))
 
         # 3. Zero-Crossing Rate
         zcr = librosa.feature.zero_crossing_rate(y=y, frame_length=1024, hop_length=512)[0]
@@ -242,16 +245,47 @@ class AudioFeatureExtractor:
         # Using YIN algorithm bounded to human voice range (60 - 450 Hz)
         mean_f0 = 0.0
         std_f0 = 0.0
+        f0_min = 0.0
+        f0_max = 0.0
         voiced_ratio = 0.0
+        unvoiced_ratio = 1.0
+        period_jitter_pct = 0.0
+        period_jitter_abs = 0.0
         try:
             f0 = librosa.yin(y, fmin=60, fmax=450, sr=sr, hop_length=512)
-            valid_f0 = f0[(f0 > 65) & (f0 < 440) & ~np.isnan(f0)]
+            valid_f0 = f0[(f0 > 65) & (f0 <= 450) & ~np.isnan(f0)]
             if len(valid_f0) > 0:
                 mean_f0 = float(np.mean(valid_f0))
                 std_f0 = float(np.std(valid_f0))
+                f0_min = float(np.min(valid_f0))
+                f0_max = float(np.max(valid_f0))
                 voiced_ratio = float(len(valid_f0) / len(f0))
+                unvoiced_ratio = 1.0 - voiced_ratio
+                
+                # Micro-jitter (cycle-to-cycle period variation)
+                if len(valid_f0) > 1:
+                    periods = 1.0 / valid_f0
+                    period_diffs = np.abs(np.diff(periods))
+                    period_jitter_abs = float(np.mean(period_diffs))
+                    mean_period = float(np.mean(periods))
+                    if mean_period > 0:
+                        period_jitter_pct = (period_jitter_abs / mean_period) * 100.0
         except Exception as e:
             logger.debug(f"Pitch extraction skipped: {e}")
+
+        # 6.5. Additional Spectral & Energy (STFT-based)
+        # Spectral flux (abrupt spectral changes)
+        S = np.abs(librosa.stft(y, n_fft=1024, hop_length=512))
+        S_norm = S / (S.max() + 1e-8)
+        spectral_flux = float(np.mean(np.sqrt(np.sum(np.diff(S_norm, axis=1)**2, axis=0))))
+        
+        # High frequency energy ratio (above 4000 Hz)
+        freqs = librosa.fft_frequencies(sr=sr, n_fft=1024)
+        high_freq_idx = np.where(freqs > 4000)[0]
+        if len(high_freq_idx) > 0 and S.sum() > 0:
+            high_freq_energy_ratio = float(np.sum(S[high_freq_idx, :]) / np.sum(S))
+        else:
+            high_freq_energy_ratio = 0.0
 
         # 7. Time Segment Breakdown (slices of 2s - 5s for timeline visualization)
         segment_duration = max(2.0, min(5.0, duration / 4.0))
@@ -327,6 +361,13 @@ class AudioFeatureExtractor:
             "mean_mfcc_var": mean_mfcc_var,
             "mean_f0": mean_f0,
             "std_f0": std_f0,
+            "f0_min": f0_min,
+            "f0_max": f0_max,
             "voiced_ratio": voiced_ratio,
+            "unvoiced_ratio": unvoiced_ratio,
+            "period_jitter_pct": period_jitter_pct,
+            "period_jitter_abs": period_jitter_abs,
+            "spectral_flux": spectral_flux,
+            "high_freq_energy_ratio": high_freq_energy_ratio,
             "segments": segments
         }

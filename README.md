@@ -435,6 +435,13 @@ python -m pytest test_audio.py test_api_audio.py -v
 - Deepfake Voice Model: Currently running in heuristic mode (No pretrained model available by default). To use a deep model, install PyTorch and provide `weights_path` in `detector.py`.
 - No extra environment variables are needed for basic acoustic extraction.
 
+### Forensic Feature Algorithms
+- **Waveform Analysis**: Computes RMS energy, dynamic range (dB), clipping ratio (%), and silence ratio (proportion of frames < 5% max RMS).
+- **Pitch Tracking & Prosody (YIN)**: Extracts fundamental frequency (F0) between 60 - 450 Hz. Returns mean F0 (Hz), range (Hz), and unvoiced frame percentage.
+- **Micro-Jitter**: Measures cycle-to-cycle period absolute difference, reported as a percentage of the mean period. Indicates physiological vocal cord consistency.
+- **Spectral Energy (STFT)**: Computes Short-Time Fourier Transform. Measures Spectral Flux (abrupt frame-to-frame spectral changes) and High-Frequency Energy Ratio (energy > 4000 Hz). High HF energy can indicate vocoder artifacts.
+- **Warning**: These heuristics provide signal descriptors, not definitive deepfake classification. Jitter and Flux are labeled as "Information Only" or "Possible Indicators".
+
 ### API Endpoint Example
 **POST `/api/analyze/audio`**
 Uploads an audio file for forensic acoustic analysis.
