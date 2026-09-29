@@ -3,6 +3,7 @@ import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { ShieldCheck, Crosshair, Lock, Mail, Eye, EyeOff, AlertCircle } from 'lucide-react';
 import { useGoogleLogin } from '@react-oauth/google';
+import { ForensicBackground } from '../components/ForensicBackground';
 
 export const LoginPage: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -150,7 +151,9 @@ export const LoginPage: React.FC = () => {
       minHeight: '100vh',
       display: 'flex',
       backgroundColor: 'var(--bg-deep)',
+      position: 'relative'
     }}>
+      <ForensicBackground />
       {/* Left: Branding & Visual (Desktop Only) */}
       <div className="desktop-only-flex" style={{
         flex: 1,

@@ -1,4 +1,7 @@
-import c2pa
+try:
+    import c2pa
+except ImportError:
+    c2pa = None
 import json
 import logging
 from typing import Dict, Any, Tuple
@@ -41,6 +44,9 @@ class C2PAVerifier:
             "verification": {},
             "warnings": []
         }
+
+        if c2pa is None:
+            return result
 
         try:
             with open(file_path, "rb") as f:
