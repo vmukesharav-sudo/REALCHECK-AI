@@ -18,10 +18,13 @@ import { ArchitectureAboutPage } from './pages/ArchitectureAboutPage';
 import { LoginPage } from './pages/LoginPage';
 import { SignupPage } from './pages/SignupPage';
 import { ForgotPasswordPage } from './pages/ForgotPasswordPage';
+import { ResetPasswordPage } from './pages/ResetPasswordPage';
+import { VerifyEmailPage } from './pages/VerifyEmailPage';
 import { SettingsPage } from './pages/SettingsPage';
 import { InvestigationProvider, useInvestigation } from './contexts/InvestigationContext';
 import { AuthProvider } from './contexts/AuthContext';
 import { ProtectedRoute } from './components/ProtectedRoute';
+import { GoogleOAuthProvider } from '@react-oauth/google';
 import { ForensicBackground } from './components/ForensicBackground';
 
 function AppLayout() {
@@ -50,7 +53,17 @@ function AppLayout() {
   }, [location.pathname]);
 
   const handleNavigate = (tab: string, caseId?: string) => {
-    navigate(`/${tab}${caseId ? `/${caseId}` : `/${activeCaseId}`}`);
+    const staticTabs = ['settings', 'about', 'models', 'new-investigation'];
+    if (staticTabs.includes(tab)) {
+      navigate(`/${tab}`);
+    } else {
+      const targetCaseId = caseId || activeCaseId;
+      if (targetCaseId && targetCaseId !== 'undefined' && targetCaseId !== 'null') {
+        navigate(`/${tab}/${targetCaseId}`);
+      } else {
+        navigate(`/${tab}`);
+      }
+    }
   };
 
   const handleSelectCase = (caseId: string) => {
@@ -115,8 +128,8 @@ function AppLayout() {
             
             <Route path="/models" element={<ModelInsightsPage />} />
             
-            <Route path="/reports" element={<ForensicReportsPage key={activeCaseId} selectedCaseId={activeCaseId} onNavigate={handleNavigate} />} />
-            <Route path="/reports/:caseId" element={<ForensicReportsPage key={activeCaseId} selectedCaseId={activeCaseId} onNavigate={handleNavigate} />} />
+            <Route path="/reports" element={<ForensicReportsPage selectedCaseId={activeCaseId} onNavigate={handleNavigate} />} />
+            <Route path="/reports/:caseId" element={<ForensicReportsPage selectedCaseId={activeCaseId} onNavigate={handleNavigate} />} />
             
             <Route path="/about" element={<ArchitectureAboutPage key={activeCaseId} onNavigate={handleNavigate} />} />
             <Route path="/settings" element={<SettingsPage />} />
@@ -139,23 +152,29 @@ function AppLayout() {
 }
 
 export function App() {
+  const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || 'mock_client_id_for_dev';
+
   return (
-    <BrowserRouter>
-      <AuthProvider>
-        <Routes>
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/signup" element={<SignupPage />} />
-          <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-          <Route path="*" element={
-            <ProtectedRoute>
-              <InvestigationProvider>
-                <AppLayout />
-              </InvestigationProvider>
-            </ProtectedRoute>
-          } />
-        </Routes>
-      </AuthProvider>
-    </BrowserRouter>
+    <GoogleOAuthProvider clientId={googleClientId}>
+      <BrowserRouter>
+        <AuthProvider>
+          <Routes>
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/signup" element={<SignupPage />} />
+            <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+            <Route path="/reset-password" element={<ResetPasswordPage />} />
+            <Route path="/verify-email" element={<VerifyEmailPage />} />
+            <Route path="*" element={
+              <ProtectedRoute>
+                <InvestigationProvider>
+                  <AppLayout />
+                </InvestigationProvider>
+              </ProtectedRoute>
+            } />
+          </Routes>
+        </AuthProvider>
+      </BrowserRouter>
+    </GoogleOAuthProvider>
   );
 }
 

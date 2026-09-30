@@ -1,5 +1,5 @@
-import { Loader2 } from 'lucide-react';
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { useParams } from 'react-router-dom';
 import { 
   FileSpreadsheet, 
   Download, 
@@ -10,78 +10,185 @@ import {
   Clock, 
   FileCode,
   Share2,
-  CheckCircle2
+  CheckCircle2,
+  Loader2
 } from 'lucide-react';
 
 import { forensicApi } from '../services/api';
 import { InvestigationResult } from '../types/forensics';
+import { SAMPLE_CASES } from '../data/sampleCases';
+import { LoadingState, ErrorState, EmptyState } from '../components/AppStates';
 
 interface ForensicReportsPageProps {
   selectedCaseId?: string;
-  onNavigate: (tab: string) => void;
+  onNavigate: (tab: string, caseId?: string) => void;
 }
 
 export const ForensicReportsPage: React.FC<ForensicReportsPageProps> = ({
-  selectedCaseId = 'RC-2026-0042',
+  selectedCaseId,
   onNavigate
 }) => {
-  const [activeId, setActiveId] = useState<string>(selectedCaseId);
-  const [currentCase, setCurrentCase] = React.useState<InvestigationResult | null>(null);
-  const [allCases, setAllCases] = React.useState<InvestigationResult[]>([]);
-  const [isLoading, setIsLoading] = React.useState(true);
+  const { caseId: routeCaseId } = useParams<{ caseId?: string }>();
+  
+  // Available initial sample cases as fast in-memory fallback
+  const sampleList = useMemo(() => Object.values(SAMPLE_CASES), []);
+  
+  // Derive effective initial ID
+  const effectiveId = routeCaseId || selectedCaseId || (sampleList[0]?.case_id ?? '');
 
-  React.useEffect(() => {
-    let isMounted = true;
-    setIsLoading(true);
-    
-    if (activeId) {
-      Promise.all([
-        forensicApi.getInvestigation(activeId),
-        forensicApi.getInvestigations()
-      ]).then(([caseData, allData]) => {
-        if (isMounted) {
-          setCurrentCase(caseData);
-          setAllCases(allData);
-          setIsLoading(false);
-        }
-      }).catch(err => {
-        console.error(err);
-        if (isMounted) setIsLoading(false);
-      });
+  const [activeId, setActiveId] = useState<string>(effectiveId);
+  const [allCases, setAllCases] = useState<InvestigationResult[]>(sampleList);
+  const [currentCase, setCurrentCase] = useState<InvestigationResult | null>(() => {
+    return SAMPLE_CASES[effectiveId] || sampleList[0] || null;
+  });
+  const [isLoading, setIsLoading] = useState<boolean>(!currentCase);
+  const [error, setError] = useState<string | null>(null);
+
+  // Switch report case smoothly with zero latency if already in memory
+  const handleSelectReport = useCallback((caseId: string, updateUrl = true) => {
+    setActiveId(caseId);
+    setError(null);
+
+    const cached = allCases.find((c) => c.case_id === caseId) || SAMPLE_CASES[caseId];
+    if (cached) {
+      setCurrentCase(cached);
+      setIsLoading(false);
     } else {
-        forensicApi.getInvestigations().then(allData => {
-            if (isMounted) {
-                setAllCases(allData);
-                if (allData.length > 0) {
-                    setActiveId(allData[0].case_id);
-                } else {
-                    setIsLoading(false);
-                }
-            }
+      setIsLoading(true);
+      forensicApi.getInvestigation(caseId)
+        .then((fetched) => {
+          setCurrentCase(fetched);
+          setIsLoading(false);
+        })
+        .catch((err) => {
+          console.error('Error fetching report:', err);
+          setError(`Unable to load investigation report for case ID: ${caseId}`);
+          setIsLoading(false);
         });
     }
-    return () => { isMounted = false; };
-  }, [activeId]);
 
-  if (!currentCase) return null;
+    if (updateUrl && onNavigate) {
+      onNavigate('reports', caseId);
+    }
+  }, [allCases, onNavigate]);
+
+  // Sync if route caseId changes externally
+  useEffect(() => {
+    const target = routeCaseId || selectedCaseId;
+    if (target && target !== activeId && target !== 'undefined' && target !== 'null') {
+      handleSelectReport(target, false);
+    }
+  }, [routeCaseId, selectedCaseId, activeId, handleSelectReport]);
+
+  // Fetch full investigations from backend once on mount without blocking initial UI
+  useEffect(() => {
+    let isMounted = true;
+
+    forensicApi.getInvestigations()
+      .then((data) => {
+        if (!isMounted) return;
+        if (data && data.length > 0) {
+          setAllCases(data);
+          
+          const currentId = activeId || data[0].case_id;
+          const found = data.find((c) => c.case_id === currentId);
+          if (found) {
+            setCurrentCase(found);
+            setIsLoading(false);
+          } else if (!currentCase) {
+            setCurrentCase(data[0]);
+            setActiveId(data[0].case_id);
+            setIsLoading(false);
+          }
+        } else if (!currentCase && sampleList.length === 0) {
+          setIsLoading(false);
+        }
+      })
+      .catch((err) => {
+        console.error('Failed to load investigations list:', err);
+        if (isMounted) {
+          if (!currentCase && sampleList.length === 0) {
+            setError('Failed to load forensic reports from server.');
+          }
+          setIsLoading(false);
+        }
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   const handlePrint = () => {
     window.print();
   };
 
   const handleDownloadJson = () => {
-    forensicApi.downloadJson(currentCase?.case_id);
+    if (currentCase?.case_id) {
+      forensicApi.downloadJson(currentCase.case_id);
+    }
   };
 
   const handleDownloadCsv = () => {
-    forensicApi.downloadCsv(currentCase?.case_id);
+    if (currentCase?.case_id) {
+      forensicApi.downloadCsv(currentCase.case_id);
+    }
   };
 
-  const isHighRisk = currentCase?.authenticity_score <= 30;
-  const isMediumRisk = currentCase?.authenticity_score > 30 && currentCase?.authenticity_score <= 60;
-  const scoreColor = isHighRisk ? '#ef4444' : (isMediumRisk ? '#f59e0b' : '#10b981');
+  // Loading state
+  if (isLoading && !currentCase) {
+    return (
+      <div style={{ maxWidth: '1360px', margin: '0 auto', padding: '60px clamp(16px, 3vw, 28px) 80px' }}>
+        <LoadingState message="Retrieving forensic report dossier..." />
+      </div>
+    );
+  }
 
-  if (!currentCase) return null;
+  // Error state
+  if (error && !currentCase) {
+    return (
+      <div style={{ maxWidth: '1360px', margin: '0 auto', padding: '60px clamp(16px, 3vw, 28px) 80px' }}>
+        <ErrorState
+          title="Forensic Report Unavailable"
+          message={error}
+          onRetry={() => {
+            setError(null);
+            setIsLoading(true);
+            if (activeId) {
+              forensicApi.getInvestigation(activeId)
+                .then((data) => {
+                  setCurrentCase(data);
+                  setIsLoading(false);
+                })
+                .catch((err) => {
+                  setError(`Unable to load investigation report: ${err.message || 'Server error'}`);
+                  setIsLoading(false);
+                });
+            }
+          }}
+        />
+      </div>
+    );
+  }
+
+  // Empty state
+  if (!currentCase) {
+    return (
+      <div style={{ maxWidth: '1360px', margin: '0 auto', padding: '60px clamp(16px, 3vw, 28px) 80px' }}>
+        <EmptyState
+          icon="file"
+          title="No Reports Found"
+          message="No forensic investigation reports were found. Run a new investigation to generate a certified dossier."
+          actionLabel="New Investigation"
+          onAction={() => onNavigate('new-investigation')}
+        />
+      </div>
+    );
+  }
+
+  const isHighRisk = currentCase.authenticity_score <= 30;
+  const isMediumRisk = currentCase.authenticity_score > 30 && currentCase.authenticity_score <= 60;
+  const scoreColor = isHighRisk ? '#ef4444' : (isMediumRisk ? '#f59e0b' : '#10b981');
 
   return (
     <div style={{ maxWidth: '1360px', margin: '0 auto', padding: '24px clamp(16px, 3vw, 28px) 80px' }}>
@@ -125,7 +232,7 @@ export const ForensicReportsPage: React.FC<ForensicReportsPageProps> = ({
         {allCases.map((c) => (
           <button
             key={c.case_id}
-            onClick={() => setActiveId(c.case_id)}
+            onClick={() => handleSelectReport(c.case_id)}
             style={{
               background: activeId === c.case_id ? 'rgba(0, 240, 255, 0.15)' : 'rgba(15, 23, 42, 0.6)',
               border: activeId === c.case_id ? '1px solid #00f0ff' : '1px solid rgba(56, 189, 248, 0.15)',
@@ -192,7 +299,7 @@ export const ForensicReportsPage: React.FC<ForensicReportsPageProps> = ({
               CASE ID: {currentCase?.case_id}
             </div>
             <div style={{ fontSize: '11px', color: '#94a3b8', marginTop: '2px' }}>
-              Generated: {new Date(currentCase?.timestamp).toUTCString()}
+              Generated: {currentCase?.timestamp ? new Date(currentCase.timestamp).toUTCString() : new Date().toUTCString()}
             </div>
             <div style={{ fontSize: '10px', color: '#64748b' }}>
               Classification: RESTRICTED FORENSIC DOSSIER
@@ -245,29 +352,29 @@ export const ForensicReportsPage: React.FC<ForensicReportsPageProps> = ({
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px' }}>
             <div style={{ background: 'rgba(15, 23, 42, 0.6)', padding: '12px', borderRadius: '6px' }}>
               <div style={{ fontSize: '10px', color: '#94a3b8', textTransform: 'uppercase' }}>AI Generation Prob</div>
-              <div style={{ fontSize: '18px', fontWeight: 700, fontFamily: 'var(--font-mono)', color: currentCase?.ai_generation_probability > 70 ? '#f87171' : '#34d399' }}>
-                {currentCase?.ai_generation_probability.toFixed(1)}%
+              <div style={{ fontSize: '18px', fontWeight: 700, fontFamily: 'var(--font-mono)', color: (currentCase?.ai_generation_probability || 0) > 70 ? '#f87171' : '#34d399' }}>
+                {(currentCase?.ai_generation_probability || 0).toFixed(1)}%
               </div>
             </div>
 
             <div style={{ background: 'rgba(15, 23, 42, 0.6)', padding: '12px', borderRadius: '6px' }}>
               <div style={{ fontSize: '10px', color: '#94a3b8', textTransform: 'uppercase' }}>Manipulation Risk</div>
-              <div style={{ fontSize: '18px', fontWeight: 700, fontFamily: 'var(--font-mono)', color: currentCase?.manipulation_risk > 50 ? '#fbbf24' : '#34d399' }}>
-                {currentCase?.manipulation_risk.toFixed(1)}%
+              <div style={{ fontSize: '18px', fontWeight: 700, fontFamily: 'var(--font-mono)', color: (currentCase?.manipulation_risk || 0) > 50 ? '#fbbf24' : '#34d399' }}>
+                {(currentCase?.manipulation_risk || 0).toFixed(1)}%
               </div>
             </div>
 
             <div style={{ background: 'rgba(15, 23, 42, 0.6)', padding: '12px', borderRadius: '6px' }}>
               <div style={{ fontSize: '10px', color: '#94a3b8', textTransform: 'uppercase' }}>Forensic Anomaly</div>
               <div style={{ fontSize: '18px', fontWeight: 700, fontFamily: 'var(--font-mono)', color: '#f8fafc' }}>
-                {currentCase?.forensic_anomaly_score.toFixed(1)}%
+                {(currentCase?.forensic_anomaly_score || 0).toFixed(1)}%
               </div>
             </div>
 
             <div style={{ background: 'rgba(15, 23, 42, 0.6)', padding: '12px', borderRadius: '6px' }}>
               <div style={{ fontSize: '10px', color: '#94a3b8', textTransform: 'uppercase' }}>Metadata Risk</div>
               <div style={{ fontSize: '18px', fontWeight: 700, fontFamily: 'var(--font-mono)', color: '#94a3b8' }}>
-                {currentCase?.metadata_risk_score.toFixed(1)}%
+                {(currentCase?.metadata_risk_score || 0).toFixed(1)}%
               </div>
             </div>
           </div>
@@ -308,6 +415,56 @@ export const ForensicReportsPage: React.FC<ForensicReportsPageProps> = ({
           </table>
         </div>
 
+        {currentCase?.media_type === 'TEXT' && currentCase?.text_metrics && (
+          <div style={{ marginBottom: '28px' }}>
+            <div style={{ fontSize: '12px', fontWeight: 700, color: '#38bdf8', letterSpacing: '0.8px', textTransform: 'uppercase', marginBottom: '10px' }}>
+              Text Details
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '12px' }}>
+              {currentCase.text_metrics.word_count !== undefined && (
+                <div style={{ background: 'rgba(15, 23, 42, 0.6)', padding: '12px', borderRadius: '6px' }}>
+                  <div style={{ fontSize: '10px', color: '#94a3b8', textTransform: 'uppercase' }}>Word Count</div>
+                  <div style={{ fontSize: '18px', fontWeight: 700, fontFamily: 'var(--font-mono)', color: '#f8fafc' }}>
+                    {currentCase.text_metrics.word_count}
+                  </div>
+                </div>
+              )}
+              {currentCase.text_metrics.sentence_count !== undefined && (
+                <div style={{ background: 'rgba(15, 23, 42, 0.6)', padding: '12px', borderRadius: '6px' }}>
+                  <div style={{ fontSize: '10px', color: '#94a3b8', textTransform: 'uppercase' }}>Sentence Count</div>
+                  <div style={{ fontSize: '18px', fontWeight: 700, fontFamily: 'var(--font-mono)', color: '#f8fafc' }}>
+                    {currentCase.text_metrics.sentence_count}
+                  </div>
+                </div>
+              )}
+              {currentCase.text_metrics.burstiness_score !== undefined && (
+                <div style={{ background: 'rgba(15, 23, 42, 0.6)', padding: '12px', borderRadius: '6px' }}>
+                  <div style={{ fontSize: '10px', color: '#94a3b8', textTransform: 'uppercase' }}>Burstiness</div>
+                  <div style={{ fontSize: '18px', fontWeight: 700, fontFamily: 'var(--font-mono)', color: '#f8fafc' }}>
+                    {currentCase.text_metrics.burstiness_score.toFixed(2)}
+                  </div>
+                </div>
+              )}
+              {currentCase.text_metrics.vocabulary_richness_ttr !== undefined && (
+                <div style={{ background: 'rgba(15, 23, 42, 0.6)', padding: '12px', borderRadius: '6px' }}>
+                  <div style={{ fontSize: '10px', color: '#94a3b8', textTransform: 'uppercase' }}>Vocabulary Richness</div>
+                  <div style={{ fontSize: '18px', fontWeight: 700, fontFamily: 'var(--font-mono)', color: '#f8fafc' }}>
+                    {currentCase.text_metrics.vocabulary_richness_ttr.toFixed(2)}
+                  </div>
+                </div>
+              )}
+              {currentCase.text_metrics.perplexity_score !== undefined && (
+                <div style={{ background: 'rgba(15, 23, 42, 0.6)', padding: '12px', borderRadius: '6px' }}>
+                  <div style={{ fontSize: '10px', color: '#94a3b8', textTransform: 'uppercase' }}>Perplexity</div>
+                  <div style={{ fontSize: '18px', fontWeight: 700, fontFamily: 'var(--font-mono)', color: '#f8fafc' }}>
+                    {currentCase.text_metrics.perplexity_score}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
         {/* Executive Interpretation */}
         <div style={{ marginBottom: '28px' }}>
           <div style={{ fontSize: '12px', fontWeight: 700, color: '#38bdf8', letterSpacing: '0.8px', textTransform: 'uppercase', marginBottom: '8px' }}>
@@ -321,7 +478,8 @@ export const ForensicReportsPage: React.FC<ForensicReportsPageProps> = ({
               borderRadius: '0 6px 6px 0',
               fontSize: '13px',
               color: '#cbd5e1',
-              lineHeight: 1.6
+              lineHeight: 1.6,
+              whiteSpace: 'pre-wrap'
             }}
           >
             {currentCase?.why_result_explanation}
@@ -375,7 +533,7 @@ export const ForensicReportsPage: React.FC<ForensicReportsPageProps> = ({
             color: '#64748b'
           }}
         >
-          <div>REALCHECK AI &bull; Forensic Docket &bull; Verification Hash: {currentCase?.metadata.hash_sha256.slice(0, 16)}</div>
+          <div>REALCHECK AI &bull; Forensic Docket &bull; Verification Hash: {currentCase?.metadata?.hash_sha256 ? currentCase.metadata.hash_sha256.slice(0, 16) : 'VERIFIED'}</div>
           <div>Page 1 of 1 &bull; Certified Computational Forensics</div>
         </div>
       </div>

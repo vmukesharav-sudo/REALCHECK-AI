@@ -1,23 +1,45 @@
-import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import { ShieldCheck, Crosshair, Mail, AlertCircle, ArrowLeft } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useSearchParams, Link } from 'react-router-dom';
+import { ShieldCheck, Crosshair, Lock, AlertCircle, CheckCircle2 } from 'lucide-react';
 
-export const ForgotPasswordPage: React.FC = () => {
-  const [email, setEmail] = useState('');
+export const ResetPasswordPage: React.FC = () => {
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
   const [isSuccess, setIsSuccess] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   
+  const [searchParams] = useSearchParams();
+  const token = searchParams.get('token');
   const navigate = useNavigate();
 
-  const handleResetPassword = async (e?: React.FormEvent | React.MouseEvent) => {
-    if (e) {
-      e.preventDefault();
+  useEffect(() => {
+    if (!token) {
+      setError('Invalid or missing reset token.');
     }
+  }, [token]);
+
+  const handleResetPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
     setError('');
     
-    if (!email) {
-      setError('Email is required');
+    if (!token) {
+      setError('Invalid or missing reset token.');
+      return;
+    }
+
+    if (!password) {
+      setError('Password is required');
+      return;
+    }
+    
+    if (password.length < 8) {
+      setError('Password must be at least 8 characters long');
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      setError('Passwords do not match');
       return;
     }
 
@@ -25,20 +47,21 @@ export const ForgotPasswordPage: React.FC = () => {
 
     try {
       const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
-      const response = await fetch(`${apiUrl}/auth/forgot-password`, {
+      const response = await fetch(`${apiUrl}/auth/reset-password`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ email }),
+        body: JSON.stringify({ token, new_password: password }),
       });
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.detail || 'Failed to send reset link');
+        throw new Error(errorData.detail || 'Failed to reset password');
       }
 
       setIsSuccess(true);
+      setTimeout(() => navigate('/login'), 3000);
     } catch (err: any) {
       setError(err.message || 'Something went wrong.');
     } finally {
@@ -97,7 +120,7 @@ export const ForgotPasswordPage: React.FC = () => {
           </div>
 
           <p style={{ color: 'var(--text-muted)', fontSize: '18px', lineHeight: 1.6, marginBottom: '32px' }}>
-            Regain access to your workspace securely. Account recovery follows strict organizational authentication protocols.
+            Set a new secure password for your workspace account.
           </p>
 
           <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
@@ -160,15 +183,11 @@ export const ForgotPasswordPage: React.FC = () => {
               </div>
           </div>
 
-          <Link to="/login" style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', color: 'var(--text-muted)', textDecoration: 'none', fontSize: '14px', marginBottom: '24px', transition: 'color 0.2s' }}>
-            <ArrowLeft size={16} /> Back to Sign In
-          </Link>
-
           <h1 style={{ fontSize: '28px', fontWeight: 700, color: 'var(--text-main)', marginBottom: '8px' }}>
-            Forgot password?
+            Reset password
           </h1>
           <p style={{ color: 'var(--text-muted)', fontSize: '15px', marginBottom: '32px' }}>
-            No worries, we'll send you reset instructions.
+            Enter your new password below.
           </p>
 
           {!isSuccess ? (
@@ -192,15 +211,42 @@ export const ForgotPasswordPage: React.FC = () => {
               )}
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                <label htmlFor="email" style={{ fontSize: '13px', color: 'var(--text-main)', fontWeight: 600 }}>Email</label>
+                <label htmlFor="password" style={{ fontSize: '13px', color: 'var(--text-main)', fontWeight: 600 }}>New Password</label>
                 <div style={{ position: 'relative' }}>
-                  <Mail size={18} color="var(--text-dim)" style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)' }} />
+                  <Lock size={18} color="var(--text-dim)" style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)' }} />
                   <input 
-                    id="email"
-                    type="email" 
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="name@organization.com"
+                    id="password"
+                    type="password" 
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="••••••••"
+                    style={{
+                      width: '100%',
+                      padding: '12px 14px 12px 42px',
+                      backgroundColor: 'var(--bg-deep)',
+                      border: '1px solid var(--border-subtle)',
+                      borderRadius: '8px',
+                      color: 'var(--text-main)',
+                      fontSize: '15px',
+                      outline: 'none',
+                      transition: 'border-color 0.2s'
+                    }}
+                    onFocus={(e) => e.target.style.borderColor = 'var(--cyan-primary)'}
+                    onBlur={(e) => e.target.style.borderColor = 'var(--border-subtle)'}
+                  />
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                <label htmlFor="confirmPassword" style={{ fontSize: '13px', color: 'var(--text-main)', fontWeight: 600 }}>Confirm New Password</label>
+                <div style={{ position: 'relative' }}>
+                  <Lock size={18} color="var(--text-dim)" style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)' }} />
+                  <input 
+                    id="confirmPassword"
+                    type="password" 
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    placeholder="••••••••"
                     style={{
                       width: '100%',
                       padding: '12px 14px 12px 42px',
@@ -220,7 +266,7 @@ export const ForgotPasswordPage: React.FC = () => {
 
               <button 
                 type="submit"
-                disabled={isLoading}
+                disabled={isLoading || !token}
                 style={{
                   marginTop: '8px',
                   background: 'var(--btn-primary-bg)',
@@ -231,38 +277,33 @@ export const ForgotPasswordPage: React.FC = () => {
                   fontSize: '15px',
                   fontWeight: 700,
                   letterSpacing: '0.5px',
-                  cursor: isLoading ? 'not-allowed' : 'pointer',
+                  cursor: (isLoading || !token) ? 'not-allowed' : 'pointer',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                   gap: '8px',
                   transition: 'all 0.2s ease',
-                  opacity: isLoading ? 0.7 : 1,
+                  opacity: (isLoading || !token) ? 0.7 : 1,
                   boxShadow: '0 4px 14px rgba(0, 210, 255, 0.2)'
                 }}
               >
-                {isLoading ? 'Sending instructions...' : 'Reset Password'}
+                {isLoading ? 'Resetting...' : 'Reset Password'}
               </button>
             </form>
           ) : (
             <div style={{ textAlign: 'center', padding: '24px', background: 'var(--bg-body-pattern-1)', border: '1px solid var(--border-active)', borderRadius: '12px' }}>
-              <div style={{ width: '48px', height: '48px', background: 'var(--cyan-primary)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px', color: 'var(--bg-deep)' }}>
-                <Mail size={24} />
+              <div style={{ width: '48px', height: '48px', background: 'var(--success-bg)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px', color: 'var(--success-text)' }}>
+                <CheckCircle2 size={24} />
               </div>
-              <h3 style={{ fontSize: '18px', color: 'var(--text-main)', marginBottom: '8px' }}>Check your email</h3>
+              <h3 style={{ fontSize: '18px', color: 'var(--text-main)', marginBottom: '8px' }}>Password Reset Successful</h3>
               <p style={{ color: 'var(--text-muted)', fontSize: '14px' }}>
-                We sent a password reset link to <br/><strong style={{ color: 'var(--text-main)' }}>{email}</strong>
+                Your password has been securely updated. Redirecting to login...
               </p>
-              <button 
-                onClick={handleResetPassword}
-                disabled={isLoading}
-                style={{ background: 'none', border: 'none', color: 'var(--cyan-primary)', marginTop: '24px', cursor: isLoading ? 'not-allowed' : 'pointer', fontSize: '14px', fontWeight: 600, opacity: isLoading ? 0.7 : 1 }}
-              >
-                {isLoading ? 'Sending...' : "Didn't receive the email? Click to resend"}
-              </button>
+              <Link to="/login" style={{ display: 'inline-block', marginTop: '24px', color: 'var(--cyan-primary)', textDecoration: 'none', fontWeight: 600 }}>
+                Go to Sign In now
+              </Link>
             </div>
           )}
-
         </div>
       </div>
     </div>

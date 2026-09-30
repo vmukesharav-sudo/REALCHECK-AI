@@ -176,7 +176,8 @@ export const WhyThisResultModal: React.FC<WhyThisResultModalProps> = ({
               borderRadius: '0 6px 6px 0',
               fontSize: '13px',
               lineHeight: 1.6,
-              color: 'var(--risk-uncertain-text)'
+              color: 'var(--risk-uncertain-text)',
+              whiteSpace: 'pre-wrap'
             }}
           >
             {result.why_result_explanation}
